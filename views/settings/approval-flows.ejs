@@ -1,0 +1,382 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Konfigurasi Alur Persetujuan' }) %>
+    <%- include('../partials/head-css') %>
+    <link rel="stylesheet" href="/plugins/sweetalert2/sweetalert2.min.css">
+    <style>
+        .flow-container {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #dee2e6;
+        }
+        .flow-step {
+            background: #fff;
+            border: 2px solid #727cf5;
+            color: #313a46;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(114,124,245,.15);
+            min-width: 140px;
+        }
+        .flow-step.start-node {
+            border-color: #0acf97;
+            background: #eafbf6;
+        }
+        .flow-step.end-node {
+            border-color: #6c757d;
+            background: #f1f3fa;
+        }
+        .flow-arrow {
+            color: #98a6ad;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        .flow-arrow i {
+            margin-bottom: -5px;
+        }
+        .flow-condition {
+            font-size: 11px;
+            color: #fa5c7c;
+            font-weight: 600;
+            background: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid #fa5c7c;
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+        .flow-role {
+            font-weight: 700;
+            color: #727cf5;
+            display: block;
+            margin-top: 4px;
+        }
+        .module-card {
+            min-height: 250px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <%- include('../partials/page-title', { title: 'Konfigurasi Alur Persetujuan', subtitle: 'Sistem' }) %>
+
+                <!-- Info Alert -->
+                <div class="alert alert-info" role="alert">
+                    <i class="ti ti-info-circle me-1"></i> 
+                    Atur alur persetujuan bertingkat untuk setiap modul. Anda dapat menambahkan berbagai aturan berdasarkan kondisi nilai (Amount, dsb).
+                </div>
+
+                <%
+                const modules = [
+                    { id: 'receivables', name: 'Piutang Karyawan', icon: 'wallet' },
+                    { id: 'leave_requests', name: 'Pengajuan Cuti', icon: 'calendar-off' },
+                    { id: 'overtime_requests', name: 'Pengajuan Lembur', icon: 'clock' },
+                    { id: 'attendance_manual', name: 'Absensi Manual', icon: 'user-check' },
+                    { id: 'payroll', name: 'Persetujuan Payroll', icon: 'cash' },
+                    { id: 'mutation', name: 'Mutasi Karyawan', icon: 'exchange' }
+                ];
+
+                const operatorMap = {
+                    'eq': '=', 'neq': '!=', 'gt': '>', 'gte': '≥', 'lt': '<', 'lte': '≤', 'always': 'Selalu'
+                };
+                %>
+
+                <div class="row">
+                    <% modules.forEach(mod => { %>
+                        <div class="col-xl-6 col-lg-12">
+                            <div class="card module-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="header-title mb-0">
+                                            <i class="ti ti-<%= mod.icon %> text-primary me-1 text-lg"></i> <%= mod.name %>
+                                        </h4>
+                                        <button class="btn btn-sm btn-outline-primary btn-add-flow" data-module="<%= mod.id %>" data-modname="<%= mod.name %>">
+                                            <i class="ti ti-plus"></i> Tambah Rule
+                                        </button>
+                                    </div>
+
+                                    <% const flows = groupedFlows[mod.id] || []; %>
+                                    
+                                    <% if(flows.length === 0) { %>
+                                        <div class="text-center text-muted py-4">
+                                            <i class="ti ti-route display-4 mb-2 text-light"></i>
+                                            <p>Belum ada alur persetujuan untuk modul ini.<br>Aksi akan langsung disetujui (Auto-Approve) atau ditangani Admin.</p>
+                                        </div>
+                                    <% } else { %>
+                                        <% flows.forEach((flow, index) => { %>
+                                            <div class="flow-container position-relative mb-3">
+                                                <!-- Action Buttons for Rule -->
+                                                <div class="position-absolute top-0 end-0 p-2">
+                                                    <button class="btn btn-xs btn-light btn-edit-flow" 
+                                                        data-flow="<%= JSON.stringify(flow).replace(/"/g, '&quot;') %>" 
+                                                        data-modname="<%= mod.name %>" title="Edit">
+                                                        <i class="ti ti-edit text-primary"></i>
+                                                    </button>
+                                                    <button class="btn btn-xs btn-light btn-delete-flow ms-1" 
+                                                        data-id="<%= flow._id %>" title="Hapus">
+                                                        <i class="ti ti-trash text-danger"></i>
+                                                    </button>
+                                                </div>
+
+                                                <!-- Visual Header -->
+                                                <div class="w-100 mb-2">
+                                                    <span class="badge bg-primary">Level <%= flow.level %></span>
+                                                    <strong class="ms-2"><%= flow.name %></strong>
+                                                </div>
+
+                                                <!-- Visual Flow -->
+                                                <div class="flow-step start-node">
+                                                    <i class="ti ti-file-upload"></i><br>Pengajuan
+                                                </div>
+
+                                                <div class="flow-arrow">
+                                                    <i class="ti ti-arrow-right"></i>
+                                                    <% if(flow.condition_operator !== 'always') { %>
+                                                        <span class="flow-condition">
+                                                            Jika <%= flow.condition_field %> <%= operatorMap[flow.condition_operator] %> <%= flow.condition_value %>
+                                                        </span>
+                                                    <% } %>
+                                                </div>
+
+                                                <div class="flow-step">
+                                                    <i class="ti ti-user-check"></i><br>
+                                                    <span class="flow-role"><%= flow.approver_role_id.name %></span>
+                                                </div>
+
+                                                <div class="flow-arrow">
+                                                    <i class="ti ti-arrow-right"></i>
+                                                </div>
+
+                                                <div class="flow-step end-node">
+                                                    <i class="ti ti-circle-check"></i><br>Selesai
+                                                </div>
+
+                                            </div>
+                                        <% }); %>
+                                    <% } %>
+
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Upsert Flow -->
+    <div id="flowModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="flowModalLabel">Form Alur Persetujuan</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="flowForm">
+                        <input type="hidden" name="module" id="flowModule">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Modul</label>
+                            <input type="text" class="form-control" id="flowModName" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="flowName">Judul Rule <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="flowName" name="name" required placeholder="Contoh: Piutang ≥ 1 Juta (HRD)">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="flowLevel">Level Persetujuan <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="flowLevel" name="level" min="1" max="5" value="1" required>
+                                <small class="text-muted">Urutan eksekusi (1 = pertama)</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="flowApprover">Role Approver <span class="text-danger">*</span></label>
+                                <select class="form-select" id="flowApprover" name="approver_role_id" required>
+                                    <option value="" disabled selected>Pilih Role...</option>
+                                    <% roles.forEach(role => { %>
+                                        <option value="<%= role._id %>"><%= role.name %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Kondisi Rule -->
+                        <div class="border p-3 rounded bg-light mb-3">
+                            <h6 class="font-13 text-uppercase mt-0 mb-2">Kondisi (Opsional)</h6>
+                            <div class="row">
+                                <div class="col-12 mb-2">
+                                    <label class="form-label font-12" for="flowOperator">Operator</label>
+                                    <select class="form-select form-select-sm" id="flowOperator" name="condition_operator">
+                                        <option value="always">Selalu Berjalan (Tanpa Syarat)</option>
+                                        <option value="eq">Sama Dengan (=)</option>
+                                        <option value="neq">Tidak Sama Dengan (!=)</option>
+                                        <option value="gt">Lebih Besar (>)</option>
+                                        <option value="gte">Lebih Besar / Sama (≥)</option>
+                                        <option value="lt">Lebih Kecil (<)</option>
+                                        <option value="lte">Lebih Kecil / Sama (≤)</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 condition-fields d-none">
+                                    <label class="form-label font-12" for="flowField">Field Name</label>
+                                    <input type="text" class="form-control form-control-sm" id="flowField" name="condition_field" placeholder="Contoh: amount">
+                                </div>
+                                <div class="col-6 condition-fields d-none">
+                                    <label class="form-label font-12" for="flowValue">Value</label>
+                                    <input type="text" class="form-control form-control-sm" id="flowValue" name="condition_value" placeholder="Contoh: 1000000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-light me-1" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary" id="btnSaveFlow">Simpan Rule</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const flowModal = new bootstrap.Modal(document.getElementById('flowModal'));
+        const form = document.getElementById('flowForm');
+        
+        // Show/hide condition fields based on operator
+        document.getElementById('flowOperator').addEventListener('change', function(e) {
+            const fields = document.querySelectorAll('.condition-fields');
+            if(e.target.value === 'always') {
+                fields.forEach(f => f.classList.add('d-none'));
+                document.getElementById('flowField').value = '';
+                document.getElementById('flowValue').value = '';
+            } else {
+                fields.forEach(f => f.classList.remove('d-none'));
+            }
+        });
+
+        // Open Modal for Create
+        document.querySelectorAll('.btn-add-flow').forEach(btn => {
+            btn.addEventListener('click', function() {
+                form.reset();
+                document.getElementById('flowOperator').dispatchEvent(new Event('change'));
+                document.getElementById('flowModule').value = this.dataset.module;
+                document.getElementById('flowModName').value = this.dataset.modname;
+                document.getElementById('flowModalLabel').textContent = 'Tambah Alur: ' + this.dataset.modname;
+                flowModal.show();
+            });
+        });
+
+        // Open Modal for Edit
+        document.querySelectorAll('.btn-edit-flow').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const flow = JSON.parse(this.dataset.flow);
+                document.getElementById('flowModule').value = flow.module;
+                document.getElementById('flowModName').value = this.dataset.modname;
+                document.getElementById('flowName').value = flow.name;
+                document.getElementById('flowLevel').value = flow.level;
+                document.getElementById('flowApprover').value = flow.approver_role_id._id;
+                document.getElementById('flowOperator').value = flow.condition_operator;
+                document.getElementById('flowOperator').dispatchEvent(new Event('change'));
+                document.getElementById('flowField').value = flow.condition_field || '';
+                document.getElementById('flowValue').value = flow.condition_value || '';
+                
+                document.getElementById('flowModalLabel').textContent = 'Edit Alur (' + flow.level + '): ' + this.dataset.modname;
+                flowModal.show();
+            });
+        });
+
+        // Save Form
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btnSave = document.getElementById('btnSaveFlow');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Cleanup empty strings for conditions
+            if(data.condition_operator === 'always') {
+                data.condition_field = null;
+                data.condition_value = null;
+            }
+
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<i class="ti ti-spin ti-loader"></i> Menyimpan...';
+
+            try {
+                const res = await fetch('/api/v1/approval-flows', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+                
+                if(json.success) {
+                    await Swal.fire('Tersimpan!', json.message, 'success');
+                    location.reload();
+                } else {
+                    Swal.fire('Gagal', json.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
+            } finally {
+                btnSave.disabled = false;
+                btnSave.innerHTML = 'Simpan Rule';
+            }
+        });
+
+        // Delete Flow
+        document.querySelectorAll('.btn-delete-flow').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const id = this.dataset.id;
+                const result = await Swal.fire({
+                    title: 'Hapus Rule?',
+                    text: "Rule ini akan dihapus permanen. Lanjutkan?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const res = await fetch('/api/v1/approval-flows/' + id, { method: 'DELETE' });
+                        const json = await res.json();
+                        if(json.success) {
+                            await Swal.fire('Dihapus!', json.message, 'success');
+                            location.reload();
+                        } else {
+                            Swal.fire('Gagal', json.message, 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
+                    }
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

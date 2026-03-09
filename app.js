@@ -37,6 +37,12 @@ const userRoutes = require('./routes/user.routes');
 // Sprint 2 — Branch Management Routes
 const branchRoutes = require('./routes/branch.routes');
 
+// Sprint 2 — Organization (Dept, Position, Salary Level) Routes
+const orgRoutes = require('./routes/org.routes');
+
+// Sprint 2 — System Config (Approval Flow) Routes
+const systemRoutes = require('./routes/system.routes');
+
 // ============================================================
 // Initialize Express App
 // ============================================================
@@ -153,6 +159,16 @@ app.use('/', userRoutes);
 // Sprint 2 — Branch Management Routes
 // ============================================================
 app.use('/', branchRoutes);
+
+// ============================================================
+// Sprint 2 — Organization (Dept, Position, Salary Level) Routes
+// ============================================================
+app.use('/', orgRoutes);
+
+// ============================================================
+// Sprint 2 — System Routes
+// ============================================================
+app.use('/', systemRoutes);
 
 // ============================================================
 // Routes — UBold Template Demo (akan diganti per sprint)

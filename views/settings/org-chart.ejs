@@ -1,0 +1,112 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Struktur Organisasi' }) %>
+    <%- include('../partials/head-css') %>
+    <style>
+        .org-node { border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; min-width: 180px; background: #fff; transition: all .2s; cursor: pointer; }
+        .org-node:hover { border-color: #727cf5; box-shadow: 0 4px 12px rgba(114,124,245,.15); }
+        .org-node .dept-code { font-size: 11px; font-weight: 600; color: #727cf5; }
+        .org-node .dept-name { font-size: 14px; font-weight: 700; margin: 4px 0; }
+        .org-node .dept-head { font-size: 12px; color: #6c757d; }
+        .org-tree { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .org-children { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+        .org-connector { width: 2px; height: 24px; background: #dee2e6; margin: 0 auto; }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <%- include('../partials/page-title', { title: 'Struktur Organisasi', subtitle: 'Master Data' }) %>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">Bagan Organisasi</h5>
+                                    <button class="btn btn-outline-primary btn-sm" id="btnExport"><i class="ti ti-download me-1"></i> Export PNG</button>
+                                </div>
+                                <div id="orgChartContainer" class="text-center py-4" style="overflow-x: auto;">
+                                    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+
+    <!-- html2canvas for export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            var res = await fetch('/api/v1/org-chart');
+            var json = await res.json();
+            if (!json.success || !json.data.length) {
+                document.getElementById('orgChartContainer').innerHTML = '<p class="text-muted">Belum ada data struktur organisasi.</p>';
+                return;
+            }
+
+            var data = json.data;
+            // Build tree from flat list
+            var rootNodes = data.filter(function(d) { return !d.parent_id; });
+            var childMap = {};
+            data.forEach(function(d) { if (d.parent_id) { if (!childMap[d.parent_id]) childMap[d.parent_id] = []; childMap[d.parent_id].push(d); } });
+
+            function buildNode(dept) {
+                var children = childMap[dept.id] || [];
+                var posHtml = dept.positions.length
+                    ? '<div class="mt-2 text-start">' + dept.positions.map(function(p) { return '<span class="badge bg-light text-dark me-1 mb-1 small">' + p.name + '</span>'; }).join('') + '</div>'
+                    : '';
+
+                var html = '<div class="org-tree">' +
+                    '<div class="org-node" data-id="' + dept.id + '">' +
+                        '<div class="dept-code">' + dept.code + '</div>' +
+                        '<div class="dept-name">' + dept.name + '</div>' +
+                        '<div class="dept-head"><i class="ti ti-user me-1"></i>' + (dept.head ? dept.head.name : 'Belum ditentukan') + '</div>' +
+                        posHtml +
+                    '</div>';
+
+                if (children.length) {
+                    html += '<div class="org-connector"></div>';
+                    html += '<div class="org-children">';
+                    children.forEach(function(child) { html += buildNode(child); });
+                    html += '</div>';
+                }
+                html += '</div>';
+                return html;
+            }
+
+            var chartHtml = '<div class="org-children">';
+            rootNodes.forEach(function(root) { chartHtml += buildNode(root); });
+            chartHtml += '</div>';
+
+            document.getElementById('orgChartContainer').innerHTML = chartHtml;
+        } catch (err) {
+            document.getElementById('orgChartContainer').innerHTML = '<p class="text-danger">Gagal memuat data.</p>';
+        }
+
+        // Export PNG
+        document.getElementById('btnExport').addEventListener('click', function() {
+            var container = document.getElementById('orgChartContainer');
+            html2canvas(container).then(function(canvas) {
+                var link = document.createElement('a');
+                link.download = 'org-chart.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+    });
+    </script>
+</body>
+</html>

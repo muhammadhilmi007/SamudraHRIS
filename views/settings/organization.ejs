@@ -1,0 +1,480 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Departemen, Jabatan & Grade Gaji' }) %>
+    <%- include('../partials/head-css') %>
+    <link rel="stylesheet" href="/plugins/sweetalert2/sweetalert2.min.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+
+                <%- include('../partials/page-title', { title: 'Departemen, Jabatan & Grade Gaji', subtitle: 'Master Data' }) %>
+
+                <!-- Main Tabs -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="nav nav-tabs nav-bordered" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#tab-dept" role="tab">
+                                            <i class="ti ti-building me-1"></i> Departemen
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#tab-pos" role="tab">
+                                            <i class="ti ti-briefcase me-1"></i> Jabatan
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#tab-grade" role="tab">
+                                            <i class="ti ti-coin me-1"></i> Grade Gaji
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content pt-3">
+                                    <!-- ============= TAB 1: DEPARTEMEN ============= -->
+                                    <div class="tab-pane fade show active" id="tab-dept" role="tabpanel">
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <input type="text" id="deptSearch" class="form-control" style="max-width:300px;" placeholder="Cari departemen...">
+                                            <button class="btn btn-primary" id="btnAddDept"><i class="ti ti-plus me-1"></i> Tambah Departemen</button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-centered table-hover table-nowrap mb-0">
+                                                <thead class="bg-light-subtle">
+                                                    <tr>
+                                                        <th>Nama</th><th>Kode</th><th>Kepala Dept</th>
+                                                        <th>Jabatan</th><th>Karyawan</th><th>Status</th><th style="width:120px;">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="deptBody">
+                                                    <tr><td colspan="7" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- ============= TAB 2: JABATAN ============= -->
+                                    <div class="tab-pane fade" id="tab-pos" role="tabpanel">
+                                        <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+                                            <div class="d-flex gap-2">
+                                                <input type="text" id="posSearch" class="form-control" style="max-width:250px;" placeholder="Cari jabatan...">
+                                                <select id="posFilterDept" class="form-select" style="max-width:200px;">
+                                                    <option value="">Semua Departemen</option>
+                                                    <% if (typeof departments !== 'undefined') { departments.forEach(function(d) { %>
+                                                    <option value="<%= d._id %>"><%= d.name %></option>
+                                                    <% }); } %>
+                                                </select>
+                                            </div>
+                                            <button class="btn btn-primary" id="btnAddPos"><i class="ti ti-plus me-1"></i> Tambah Jabatan</button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-centered table-hover table-nowrap mb-0">
+                                                <thead class="bg-light-subtle">
+                                                    <tr>
+                                                        <th>Nama Jabatan</th><th>Kode</th><th>Departemen</th>
+                                                        <th>Level</th><th>Grade Gaji</th><th>Karyawan</th><th style="width:120px;">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="posBody">
+                                                    <tr><td colspan="7" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- ============= TAB 3: GRADE GAJI ============= -->
+                                    <div class="tab-pane fade" id="tab-grade" role="tabpanel">
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <input type="text" id="gradeSearch" class="form-control" style="max-width:300px;" placeholder="Cari grade...">
+                                            <button class="btn btn-primary" id="btnAddGrade"><i class="ti ti-plus me-1"></i> Tambah Grade</button>
+                                        </div>
+                                        <div class="row" id="gradeGrid">
+                                            <!-- Cards loaded via AJAX -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Modal: Department ============ -->
+    <div class="modal fade" id="deptModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="deptModalTitle">Tambah Departemen</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="deptForm">
+                        <input type="hidden" id="deptId">
+                        <div class="mb-3"><label class="form-label">Kode <span class="text-danger">*</span></label><input type="text" class="form-control" id="deptCode" maxlength="10" style="text-transform:uppercase;" required></div>
+                        <div class="mb-3"><label class="form-label">Nama <span class="text-danger">*</span></label><input type="text" class="form-control" id="deptName" required></div>
+                        <div class="mb-3"><label class="form-label">Deskripsi</label><textarea class="form-control" id="deptDesc" rows="2"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" id="btnSaveDept"><i class="ti ti-check me-1"></i> Simpan</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Modal: Position ============ -->
+    <div class="modal fade" id="posModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="posModalTitle">Tambah Jabatan</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="posForm">
+                        <input type="hidden" id="posId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Kode <span class="text-danger">*</span></label><input type="text" class="form-control" id="posCode" maxlength="10" style="text-transform:uppercase;" required></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Nama <span class="text-danger">*</span></label><input type="text" class="form-control" id="posName" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Departemen <span class="text-danger">*</span></label>
+                                <select class="form-select" id="posDept" required>
+                                    <option value="">Pilih Departemen</option>
+                                    <% if (typeof departments !== 'undefined') { departments.forEach(function(d) { %>
+                                    <option value="<%= d._id %>"><%= d.name %></option>
+                                    <% }); } %>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Grade Gaji</label>
+                                <select class="form-select" id="posGrade">
+                                    <option value="">Tidak Ada</option>
+                                    <% if (typeof salaryLevels !== 'undefined') { salaryLevels.forEach(function(g) { %>
+                                    <option value="<%= g._id %>"><%= g.name %> (<%= g.grade %>)</option>
+                                    <% }); } %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Level Hierarki</label>
+                            <select class="form-select" id="posLevel">
+                                <option value="1">1 — Staff</option>
+                                <option value="2">2 — Supervisor</option>
+                                <option value="3">3 — Manager</option>
+                                <option value="4">4 — General Manager</option>
+                                <option value="5">5 — Director</option>
+                            </select>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Deskripsi</label><textarea class="form-control" id="posDesc" rows="2"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" id="btnSavePos"><i class="ti ti-check me-1"></i> Simpan</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Modal: Grade Gaji ============ -->
+    <div class="modal fade" id="gradeModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="gradeModalTitle">Tambah Grade Gaji</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="gradeForm">
+                        <input type="hidden" id="gradeId">
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label class="form-label">Kode Grade <span class="text-danger">*</span></label><input type="text" class="form-control" id="gradeCode" maxlength="5" style="text-transform:uppercase;" required></div>
+                            <div class="col-md-8 mb-3"><label class="form-label">Nama <span class="text-danger">*</span></label><input type="text" class="form-control" id="gradeName" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Gaji Minimum (Rp) <span class="text-danger">*</span></label><input type="number" class="form-control" id="gradeMinSalary" min="0" required></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Gaji Maksimum (Rp) <span class="text-danger">*</span></label><input type="number" class="form-control" id="gradeMaxSalary" min="0" required></div>
+                        </div>
+                        <hr>
+                        <h6 class="text-primary mb-3">Default Komponen Tunjangan</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label class="form-label">Tunjangan Lama Kerja</label><input type="number" class="form-control" id="dcTenure" min="0" value="0"></div>
+                            <div class="col-md-4 mb-3"><label class="form-label">Tunjangan Jabatan</label><input type="number" class="form-control" id="dcPosition" min="0" value="0"></div>
+                            <div class="col-md-4 mb-3"><label class="form-label">Tunjangan Kinerja</label><input type="number" class="form-control" id="dcPerformance" min="0" value="0"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Uang Makan</label><input type="number" class="form-control" id="dcMeal" min="0" value="0"></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">BBM</label><input type="number" class="form-control" id="dcFuel" min="0" value="0"></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Deskripsi</label><textarea class="form-control" id="gradeDesc" rows="2"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" id="btnSaveGrade"><i class="ti ti-check me-1"></i> Simpan</button></div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var levelLabels = { 1:'Staff', 2:'Supervisor', 3:'Manager', 4:'GM', 5:'Director' };
+        var levelBadgeColors = { 1:'secondary', 2:'info', 3:'primary', 4:'warning', 5:'danger' };
+
+        function esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        function rp(n) { return new Intl.NumberFormat('id-ID').format(n || 0); }
+        function debounce(fn, ms) { var t; return function() { clearTimeout(t); t = setTimeout(fn, ms); }; }
+
+        // ==================== DEPARTMENT ====================
+        function loadDepts() {
+            var s = document.getElementById('deptSearch').value;
+            var params = new URLSearchParams(); if (s) params.set('search', s);
+            fetch('/api/v1/departments?' + params).then(function(r){return r.json();}).then(function(json) {
+                if (!json.success || !json.data.length) {
+                    document.getElementById('deptBody').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">Belum ada data departemen</td></tr>';
+                    return;
+                }
+                document.getElementById('deptBody').innerHTML = json.data.map(function(d) {
+                    return '<tr>' +
+                        '<td><strong>' + esc(d.name) + '</strong></td>' +
+                        '<td><span class="badge bg-primary-subtle text-primary">' + esc(d.code) + '</span></td>' +
+                        '<td>' + (d.head_employee_id ? esc(d.head_employee_id.full_name) : '<span class="text-muted">-</span>') + '</td>' +
+                        '<td>' + (d.position_count || 0) + '</td>' +
+                        '<td>' + (d.employee_count || 0) + '</td>' +
+                        '<td>' + (d.is_active ? '<span class="badge bg-success-subtle text-success">Aktif</span>' : '<span class="badge bg-danger-subtle text-danger">Nonaktif</span>') + '</td>' +
+                        '<td>' +
+                            '<button class="btn btn-sm btn-soft-primary me-1 btn-edit-dept" data-id="' + d._id + '" title="Edit"><i class="ti ti-pencil"></i></button>' +
+                            '<button class="btn btn-sm btn-soft-danger btn-del-dept" data-id="' + d._id + '" data-name="' + esc(d.name) + '" title="Hapus"><i class="ti ti-trash"></i></button>' +
+                        '</td></tr>';
+                }).join('');
+            });
+        }
+        loadDepts();
+        document.getElementById('deptSearch').addEventListener('input', debounce(loadDepts, 400));
+
+        document.getElementById('btnAddDept').addEventListener('click', function() {
+            document.getElementById('deptId').value=''; document.getElementById('deptModalTitle').textContent='Tambah Departemen';
+            document.getElementById('deptForm').reset(); new bootstrap.Modal(document.getElementById('deptModal')).show();
+        });
+
+        document.getElementById('deptBody').addEventListener('click', async function(e) {
+            var editBtn = e.target.closest('.btn-edit-dept');
+            if (editBtn) {
+                var id = editBtn.dataset.id;
+                var r = await fetch('/api/v1/departments/' + id); var j = await r.json();
+                if (j.success) {
+                    document.getElementById('deptId').value = j.data._id;
+                    document.getElementById('deptModalTitle').textContent = 'Edit Departemen';
+                    document.getElementById('deptCode').value = j.data.code;
+                    document.getElementById('deptName').value = j.data.name;
+                    document.getElementById('deptDesc').value = j.data.description || '';
+                    new bootstrap.Modal(document.getElementById('deptModal')).show();
+                }
+            }
+            var delBtn = e.target.closest('.btn-del-dept');
+            if (delBtn) {
+                var confirm = await Swal.fire({ title:'Nonaktifkan Departemen?', text:'Departemen "' + delBtn.dataset.name + '" akan dinonaktifkan.', icon:'warning', showCancelButton:true, confirmButtonText:'Ya', cancelButtonText:'Batal' });
+                if (confirm.isConfirmed) {
+                    var r = await fetch('/api/v1/departments/' + delBtn.dataset.id, { method:'DELETE' }); var j = await r.json();
+                    if (j.success) { Swal.fire('Berhasil!', j.message, 'success'); loadDepts(); } else Swal.fire('Gagal', j.error?.message, 'error');
+                }
+            }
+        });
+
+        document.getElementById('btnSaveDept').addEventListener('click', async function() {
+            var id = document.getElementById('deptId').value;
+            var body = { code: document.getElementById('deptCode').value.trim().toUpperCase(), name: document.getElementById('deptName').value.trim(), description: document.getElementById('deptDesc').value.trim() };
+            if (!body.code || !body.name) return Swal.fire('Perhatian','Kode dan nama wajib diisi','warning');
+            this.disabled = true;
+            var r = await fetch(id ? '/api/v1/departments/' + id : '/api/v1/departments', { method: id ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            var j = await r.json(); this.disabled = false;
+            if (j.success) { bootstrap.Modal.getInstance(document.getElementById('deptModal')).hide(); Swal.fire('Berhasil!', j.message, 'success'); loadDepts(); }
+            else Swal.fire('Gagal', j.error?.message || 'Terjadi kesalahan', 'error');
+        });
+
+        // ==================== POSITION ====================
+        function loadPositions() {
+            var s = document.getElementById('posSearch').value;
+            var dept = document.getElementById('posFilterDept').value;
+            var params = new URLSearchParams(); if (s) params.set('search', s); if (dept) params.set('department_id', dept);
+            fetch('/api/v1/positions?' + params).then(function(r){return r.json();}).then(function(json) {
+                if (!json.success || !json.data.length) {
+                    document.getElementById('posBody').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">Belum ada data jabatan</td></tr>';
+                    return;
+                }
+                document.getElementById('posBody').innerHTML = json.data.map(function(p) {
+                    var lv = p.level || 1;
+                    return '<tr>' +
+                        '<td><strong>' + esc(p.name) + '</strong></td>' +
+                        '<td><span class="badge bg-primary-subtle text-primary">' + esc(p.code) + '</span></td>' +
+                        '<td>' + (p.department_id ? esc(p.department_id.name) : '-') + '</td>' +
+                        '<td><span class="badge bg-' + (levelBadgeColors[lv]||'secondary') + '">' + lv + ' — ' + (levelLabels[lv]||'Staff') + '</span></td>' +
+                        '<td>' + (p.salary_level_id ? esc(p.salary_level_id.name) + ' (' + p.salary_level_id.grade + ')' : '<span class="text-muted">-</span>') + '</td>' +
+                        '<td>' + (p.employee_count||0) + '</td>' +
+                        '<td>' +
+                            '<button class="btn btn-sm btn-soft-primary me-1 btn-edit-pos" data-id="' + p._id + '" title="Edit"><i class="ti ti-pencil"></i></button>' +
+                            '<button class="btn btn-sm btn-soft-danger btn-del-pos" data-id="' + p._id + '" data-name="' + esc(p.name) + '" title="Hapus"><i class="ti ti-trash"></i></button>' +
+                        '</td></tr>';
+                }).join('');
+            });
+        }
+
+        document.querySelector('a[href="#tab-pos"]').addEventListener('shown.bs.tab', function() { loadPositions(); });
+        document.getElementById('posSearch').addEventListener('input', debounce(loadPositions, 400));
+        document.getElementById('posFilterDept').addEventListener('change', loadPositions);
+
+        document.getElementById('btnAddPos').addEventListener('click', function() {
+            document.getElementById('posId').value=''; document.getElementById('posModalTitle').textContent='Tambah Jabatan';
+            document.getElementById('posForm').reset(); new bootstrap.Modal(document.getElementById('posModal')).show();
+        });
+
+        document.getElementById('posBody').addEventListener('click', async function(e) {
+            var editBtn = e.target.closest('.btn-edit-pos');
+            if (editBtn) {
+                var r = await fetch('/api/v1/positions/' + editBtn.dataset.id); var j = await r.json();
+                if (j.success) {
+                    var p = j.data;
+                    document.getElementById('posId').value = p._id;
+                    document.getElementById('posModalTitle').textContent = 'Edit Jabatan';
+                    document.getElementById('posCode').value = p.code;
+                    document.getElementById('posName').value = p.name;
+                    document.getElementById('posDept').value = p.department_id?._id || '';
+                    document.getElementById('posGrade').value = p.salary_level_id?._id || '';
+                    document.getElementById('posLevel').value = p.level || 1;
+                    document.getElementById('posDesc').value = p.description || '';
+                    new bootstrap.Modal(document.getElementById('posModal')).show();
+                }
+            }
+            var delBtn = e.target.closest('.btn-del-pos');
+            if (delBtn) {
+                var confirm = await Swal.fire({ title:'Nonaktifkan Jabatan?', text:'"' + delBtn.dataset.name + '" akan dinonaktifkan.', icon:'warning', showCancelButton:true, confirmButtonText:'Ya', cancelButtonText:'Batal' });
+                if (confirm.isConfirmed) {
+                    var r = await fetch('/api/v1/positions/' + delBtn.dataset.id, { method:'DELETE' }); var j = await r.json();
+                    if (j.success) { Swal.fire('Berhasil!', j.message, 'success'); loadPositions(); } else Swal.fire('Gagal', j.error?.message, 'error');
+                }
+            }
+        });
+
+        document.getElementById('btnSavePos').addEventListener('click', async function() {
+            var id = document.getElementById('posId').value;
+            var body = {
+                code: document.getElementById('posCode').value.trim().toUpperCase(),
+                name: document.getElementById('posName').value.trim(),
+                department_id: document.getElementById('posDept').value,
+                salary_level_id: document.getElementById('posGrade').value || null,
+                level: parseInt(document.getElementById('posLevel').value) || 1,
+                description: document.getElementById('posDesc').value.trim()
+            };
+            if (!body.code || !body.name || !body.department_id) return Swal.fire('Perhatian','Kode, nama, dan departemen wajib diisi','warning');
+            this.disabled = true;
+            var r = await fetch(id ? '/api/v1/positions/' + id : '/api/v1/positions', { method: id ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            var j = await r.json(); this.disabled = false;
+            if (j.success) { bootstrap.Modal.getInstance(document.getElementById('posModal')).hide(); Swal.fire('Berhasil!', j.message, 'success'); loadPositions(); }
+            else Swal.fire('Gagal', j.error?.message || 'Terjadi kesalahan', 'error');
+        });
+
+        // ==================== GRADE GAJI ====================
+        function loadGrades() {
+            var s = document.getElementById('gradeSearch').value;
+            var params = new URLSearchParams(); if (s) params.set('search', s);
+            fetch('/api/v1/salary-levels?' + params).then(function(r){return r.json();}).then(function(json) {
+                var grid = document.getElementById('gradeGrid');
+                if (!json.success || !json.data.length) {
+                    grid.innerHTML = '<div class="col-12 text-center text-muted py-4">Belum ada data grade gaji</div>';
+                    return;
+                }
+                grid.innerHTML = json.data.map(function(g) {
+                    var dc = g.default_components || {};
+                    return '<div class="col-xl-4 col-md-6 mb-3">' +
+                        '<div class="card border h-100">' +
+                            '<div class="card-body">' +
+                                '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                                    '<div><h5 class="mb-1">' + esc(g.name) + '</h5><span class="badge bg-primary-subtle text-primary">' + esc(g.grade) + '</span></div>' +
+                                    '<div class="dropdown"><button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="ti ti-dots-vertical"></i></button>' +
+                                    '<ul class="dropdown-menu dropdown-menu-end">' +
+                                        '<li><a class="dropdown-item btn-edit-grade" href="#" data-id="' + g._id + '"><i class="ti ti-pencil me-1"></i> Edit</a></li>' +
+                                        '<li><a class="dropdown-item btn-del-grade text-danger" href="#" data-id="' + g._id + '" data-name="' + esc(g.name) + '"><i class="ti ti-trash me-1"></i> Hapus</a></li>' +
+                                    '</ul></div>' +
+                                '</div>' +
+                                '<div class="mb-3"><small class="text-muted">Range Gaji:</small><br><strong class="text-success">Rp ' + rp(g.min_salary) + '</strong> — <strong class="text-danger">Rp ' + rp(g.max_salary) + '</strong></div>' +
+                                '<div class="mb-2"><small class="text-muted">Jabatan terkait:</small> <span class="badge bg-info-subtle text-info">' + (g.position_count||0) + ' jabatan</span></div>' +
+                                '<hr><small class="text-muted">Default Tunjangan:</small>' +
+                                '<div class="row mt-1 text-center small">' +
+                                    '<div class="col"><div class="p-1 rounded bg-light"><div class="fw-bold">' + rp(dc.tenure_allowance) + '</div><div class="text-muted">Lama Kerja</div></div></div>' +
+                                    '<div class="col"><div class="p-1 rounded bg-light"><div class="fw-bold">' + rp(dc.position_allowance) + '</div><div class="text-muted">Jabatan</div></div></div>' +
+                                    '<div class="col"><div class="p-1 rounded bg-light"><div class="fw-bold">' + rp(dc.meal_allowance) + '</div><div class="text-muted">Makan</div></div></div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div></div>';
+                }).join('');
+            });
+        }
+
+        document.querySelector('a[href="#tab-grade"]').addEventListener('shown.bs.tab', function() { loadGrades(); });
+        document.getElementById('gradeSearch').addEventListener('input', debounce(loadGrades, 400));
+
+        document.getElementById('btnAddGrade').addEventListener('click', function() {
+            document.getElementById('gradeId').value=''; document.getElementById('gradeModalTitle').textContent='Tambah Grade Gaji';
+            document.getElementById('gradeForm').reset(); new bootstrap.Modal(document.getElementById('gradeModal')).show();
+        });
+
+        document.getElementById('gradeGrid').addEventListener('click', async function(e) {
+            var editBtn = e.target.closest('.btn-edit-grade');
+            if (editBtn) {
+                e.preventDefault();
+                var r = await fetch('/api/v1/salary-levels/' + editBtn.dataset.id); var j = await r.json();
+                if (j.success) {
+                    var g = j.data; var dc = g.default_components || {};
+                    document.getElementById('gradeId').value = g._id;
+                    document.getElementById('gradeModalTitle').textContent = 'Edit Grade Gaji';
+                    document.getElementById('gradeCode').value = g.grade;
+                    document.getElementById('gradeName').value = g.name;
+                    document.getElementById('gradeMinSalary').value = g.min_salary;
+                    document.getElementById('gradeMaxSalary').value = g.max_salary;
+                    document.getElementById('dcTenure').value = dc.tenure_allowance || 0;
+                    document.getElementById('dcPosition').value = dc.position_allowance || 0;
+                    document.getElementById('dcPerformance').value = dc.performance_allowance || 0;
+                    document.getElementById('dcMeal').value = dc.meal_allowance || 0;
+                    document.getElementById('dcFuel').value = dc.fuel_allowance || 0;
+                    document.getElementById('gradeDesc').value = g.description || '';
+                    new bootstrap.Modal(document.getElementById('gradeModal')).show();
+                }
+            }
+            var delBtn = e.target.closest('.btn-del-grade');
+            if (delBtn) {
+                e.preventDefault();
+                var confirm = await Swal.fire({ title:'Nonaktifkan Grade?', text:'"' + delBtn.dataset.name + '" akan dinonaktifkan.', icon:'warning', showCancelButton:true, confirmButtonText:'Ya', cancelButtonText:'Batal' });
+                if (confirm.isConfirmed) {
+                    var r = await fetch('/api/v1/salary-levels/' + delBtn.dataset.id, { method:'DELETE' }); var j = await r.json();
+                    if (j.success) { Swal.fire('Berhasil!', j.message, 'success'); loadGrades(); } else Swal.fire('Gagal', j.error?.message, 'error');
+                }
+            }
+        });
+
+        document.getElementById('btnSaveGrade').addEventListener('click', async function() {
+            var id = document.getElementById('gradeId').value;
+            var body = {
+                grade: document.getElementById('gradeCode').value.trim().toUpperCase(),
+                name: document.getElementById('gradeName').value.trim(),
+                min_salary: parseInt(document.getElementById('gradeMinSalary').value) || 0,
+                max_salary: parseInt(document.getElementById('gradeMaxSalary').value) || 0,
+                default_components: {
+                    tenure_allowance: parseInt(document.getElementById('dcTenure').value) || 0,
+                    position_allowance: parseInt(document.getElementById('dcPosition').value) || 0,
+                    performance_allowance: parseInt(document.getElementById('dcPerformance').value) || 0,
+                    meal_allowance: parseInt(document.getElementById('dcMeal').value) || 0,
+                    fuel_allowance: parseInt(document.getElementById('dcFuel').value) || 0,
+                },
+                description: document.getElementById('gradeDesc').value.trim()
+            };
+            if (!body.grade || !body.name) return Swal.fire('Perhatian','Kode grade dan nama wajib diisi','warning');
+            if (body.min_salary > body.max_salary) return Swal.fire('Perhatian','Gaji minimum tidak boleh lebih besar dari maksimum','warning');
+            this.disabled = true;
+            var r = await fetch(id ? '/api/v1/salary-levels/' + id : '/api/v1/salary-levels', { method: id ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            var j = await r.json(); this.disabled = false;
+            if (j.success) { bootstrap.Modal.getInstance(document.getElementById('gradeModal')).hide(); Swal.fire('Berhasil!', j.message, 'success'); loadGrades(); }
+            else Swal.fire('Gagal', j.error?.message || 'Terjadi kesalahan', 'error');
+        });
+    });
+    </script>
+</body>
+</html>
