@@ -1,0 +1,318 @@
+<%- include('../../partials/html') %>
+
+<head>
+    <%- include('../../partials/title-meta') %>
+    <%- include('../../partials/head-css') %>
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div class="wrapper">
+
+        <%- include('../../partials/menu') %>
+
+        <!-- ============================================================== -->
+        <!-- Start Main Content -->
+        <!-- ============================================================== -->
+        <div class="content-page">
+            <div class="container-fluid">
+
+                <%- include('../../partials/page-title') %>
+
+                <!-- Filter & Actions Row -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Cari</label>
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Username, email...">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Role</label>
+                                        <select class="form-select" id="filterRole">
+                                            <option value="">Semua Role</option>
+                                            <% if (typeof roles !== 'undefined') { %>
+                                                <% roles.forEach(function(role) { %>
+                                                <option value="<%= role.slug %>"><%= role.name %></option>
+                                                <% }); %>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Cabang</label>
+                                        <select class="form-select" id="filterBranch">
+                                            <option value="">Semua Cabang</option>
+                                            <% if (typeof branches !== 'undefined') { %>
+                                                <% branches.forEach(function(branch) { %>
+                                                <option value="<%= branch._id %>"><%= branch.name %></option>
+                                                <% }); %>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" id="filterStatus">
+                                            <option value="">Semua</option>
+                                            <option value="true">Aktif</option>
+                                            <option value="false">Nonaktif</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 text-end">
+                                        <a href="/sistem/pengguna/tambah" class="btn btn-primary">
+                                            <i class="ti ti-plus me-1"></i> Tambah Pengguna
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-centered table-hover table-nowrap mb-0" id="usersTable">
+                                        <thead class="bg-light-subtle">
+                                            <tr>
+                                                <th style="width: 50px;"></th>
+                                                <th>Nama / Username</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Cabang</th>
+                                                <th>Status</th>
+                                                <th>Login Terakhir</th>
+                                                <th style="width: 120px;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="usersTableBody">
+                                            <tr id="loadingRow">
+                                                <td colspan="8" class="text-center py-4">
+                                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                                    <span class="ms-2 text-muted">Memuat data...</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div id="paginationInfo" class="text-muted fs-sm"></div>
+                                    <nav>
+                                        <ul class="pagination pagination-sm mb-0" id="paginationNav"></ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- container-fluid -->
+        </div> <!-- content-page -->
+
+    </div> <!-- wrapper -->
+
+    <%- include('../../partials/footer-scripts') %>
+
+    <!-- SweetAlert2 -->
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="/plugins/sweetalert2/sweetalert2.min.css">
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentPage = 1;
+        const limit = 10;
+
+        // Load users on page load
+        loadUsers();
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', debounce(() => { currentPage = 1; loadUsers(); }, 400));
+        document.getElementById('filterRole').addEventListener('change', () => { currentPage = 1; loadUsers(); });
+        document.getElementById('filterBranch').addEventListener('change', () => { currentPage = 1; loadUsers(); });
+        document.getElementById('filterStatus').addEventListener('change', () => { currentPage = 1; loadUsers(); });
+
+        async function loadUsers() {
+            const search = document.getElementById('searchInput').value;
+            const role = document.getElementById('filterRole').value;
+            const branch_id = document.getElementById('filterBranch').value;
+            const is_active = document.getElementById('filterStatus').value;
+
+            const params = new URLSearchParams({ page: currentPage, limit });
+            if (search) params.set('search', search);
+            if (role) params.set('role', role);
+            if (branch_id) params.set('branch_id', branch_id);
+            if (is_active) params.set('is_active', is_active);
+
+            try {
+                const response = await fetch('/api/v1/users?' + params.toString());
+                const result = await response.json();
+
+                if (result.success) {
+                    renderTable(result.data);
+                    renderPagination(result.pagination);
+                } else {
+                    document.getElementById('usersTableBody').innerHTML =
+                        '<tr><td colspan="8" class="text-center text-danger py-3">' + (result.error?.message || 'Gagal memuat data') + '</td></tr>';
+                }
+            } catch (err) {
+                document.getElementById('usersTableBody').innerHTML =
+                    '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi</td></tr>';
+            }
+        }
+
+        function renderTable(users) {
+            const tbody = document.getElementById('usersTableBody');
+
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada data pengguna</td></tr>';
+                return;
+            }
+
+            const roleBadge = {
+                admin: 'bg-danger',
+                manager_hrd: 'bg-primary',
+                kepala_cabang: 'bg-info',
+                staff_admin: 'bg-success',
+                kasir: 'bg-warning',
+            };
+
+            tbody.innerHTML = users.map(user => {
+                const roleSlug = user.role_id?.slug || '';
+                const roleName = user.role_id?.name || '-';
+                const branchName = user.branch_id?.name || '-';
+                const status = user.is_active;
+                const lastLogin = user.last_login ? new Date(user.last_login).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+                const avatar = '/images/users/user-3.jpg';
+
+                return '<tr>' +
+                    '<td><img src="' + avatar + '" class="avatar-sm rounded-circle" alt=""></td>' +
+                    '<td><h6 class="mb-0 fw-semibold">' + (user.employee_id?.full_name || user.username) + '</h6><small class="text-muted">@' + user.username + '</small></td>' +
+                    '<td>' + user.email + '</td>' +
+                    '<td><span class="badge ' + (roleBadge[roleSlug] || 'bg-secondary') + '">' + roleName + '</span></td>' +
+                    '<td>' + branchName + '</td>' +
+                    '<td>' + (status ? '<span class="badge bg-success-subtle text-success">Aktif</span>' : '<span class="badge bg-danger-subtle text-danger">Nonaktif</span>') + '</td>' +
+                    '<td><small>' + lastLogin + '</small></td>' +
+                    '<td>' +
+                        '<a href="/sistem/pengguna/edit/' + user._id + '" class="btn btn-sm btn-soft-primary me-1" title="Edit"><i class="ti ti-pencil"></i></a>' +
+                        '<button class="btn btn-sm btn-soft-warning me-1" onclick="resetPassword(\'' + user._id + '\', \'' + user.username + '\')" title="Reset Password"><i class="ti ti-key"></i></button>' +
+                        '<button class="btn btn-sm btn-soft-danger" onclick="toggleUser(\'' + user._id + '\', \'' + user.username + '\', ' + user.is_active + ')" title="' + (user.is_active ? 'Nonaktifkan' : 'Aktifkan') + '"><i class="ti ti-' + (user.is_active ? 'user-off' : 'user-check') + '"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        function renderPagination(pagination) {
+            if (!pagination) return;
+            const { total, page, limit, totalPages } = pagination;
+            const start = (page - 1) * limit + 1;
+            const end = Math.min(page * limit, total);
+
+            document.getElementById('paginationInfo').textContent =
+                'Menampilkan ' + start + '-' + end + ' dari ' + total + ' pengguna';
+
+            const nav = document.getElementById('paginationNav');
+            let html = '';
+
+            if (page > 1) {
+                html += '<li class="page-item"><a class="page-link" href="#" onclick="goToPage(' + (page - 1) + '); return false;">&laquo;</a></li>';
+            }
+            for (let i = 1; i <= totalPages; i++) {
+                html += '<li class="page-item ' + (i === page ? 'active' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a></li>';
+            }
+            if (page < totalPages) {
+                html += '<li class="page-item"><a class="page-link" href="#" onclick="goToPage(' + (page + 1) + '); return false;">&raquo;</a></li>';
+            }
+            nav.innerHTML = html;
+        }
+
+        // Expose functions to global scope
+        window.goToPage = function(page) {
+            currentPage = page;
+            loadUsers();
+        };
+
+        window.resetPassword = async function(userId, username) {
+            const result = await Swal.fire({
+                title: 'Reset Password?',
+                html: 'Password <strong>' + username + '</strong> akan direset ke password acak baru.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f0ad4e',
+                confirmButtonText: 'Ya, Reset',
+                cancelButtonText: 'Batal',
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('/api/v1/users/' + userId + '/reset-password', { method: 'POST' });
+                    const data = await response.json();
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Password Direset!',
+                            html: 'Password baru: <code class="fs-16">' + data.data.new_password + '</code><br><small class="text-muted">Salin dan berikan ke pengguna.</small>',
+                            icon: 'success',
+                        });
+                    } else {
+                        Swal.fire('Error', data.error?.message || 'Gagal reset password', 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('Error', 'Terjadi kesalahan koneksi', 'error');
+                }
+            }
+        };
+
+        window.toggleUser = async function(userId, username, isActive) {
+            const action = isActive ? 'nonaktifkan' : 'aktifkan';
+            const result = await Swal.fire({
+                title: (isActive ? 'Nonaktifkan' : 'Aktifkan') + ' Pengguna?',
+                html: 'Apakah Anda yakin ingin me-' + action + ' <strong>' + username + '</strong>?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: isActive ? '#dc3545' : '#28a745',
+                confirmButtonText: 'Ya, ' + (isActive ? 'Nonaktifkan' : 'Aktifkan'),
+                cancelButtonText: 'Batal',
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    let response;
+                    if (isActive) {
+                        response = await fetch('/api/v1/users/' + userId, { method: 'DELETE' });
+                    } else {
+                        response = await fetch('/api/v1/users/' + userId, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ is_active: true }),
+                        });
+                    }
+                    const data = await response.json();
+                    if (data.success) {
+                        Swal.fire('Berhasil!', 'Pengguna berhasil di-' + action + '.', 'success');
+                        loadUsers();
+                    } else {
+                        Swal.fire('Error', data.error?.message || 'Gagal', 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('Error', 'Terjadi kesalahan koneksi', 'error');
+                }
+            }
+        };
+
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(func, wait);
+            };
+        }
+    });
+    </script>
+</body>
+
+</html>

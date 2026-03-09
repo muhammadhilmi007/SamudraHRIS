@@ -1,0 +1,223 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta') %>
+    <%- include('../partials/head-css') %>
+    <style>
+        .auth-login-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-brand-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b3f5c;
+        }
+        .login-brand-text span {
+            color: #6366f1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-box p-0 w-100">
+        <div class="row w-100 g-0">
+            <div class="col-md-auto">
+                <!-- Auth Box Content -->
+                <div class="card auth-box-form border-0 mb-0">
+                    <div class="position-absolute top-0 end-0" style="width: 180px;">
+                        <svg style="opacity: 0.075; width: 100%; height: auto;" width="600" height="560" viewBox="0 0 600 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_login)">
+                                <mask id="mask0_login" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="1200">
+                                    <path d="M0 0L0 1200H600L600 0H0Z" fill="white" />
+                                </mask>
+                                <g mask="url(#mask0_login)">
+                                    <path d="M537.448 166.697L569.994 170.892L550.644 189.578L537.448 166.697Z" fill="#6366f1" />
+                                    <path d="M674.716 80.202L501.67 253.248C486.081 268.837 460.806 268.837 445.217 253.248L272.171 80.202C256.582 64.613 256.582 39.338 272.171 23.749L445.217 -149.297C460.806 -164.886 486.081 -164.886 501.67 -149.297L674.716 23.75C690.305 39.339 690.305 64.613 674.716 80.202Z" stroke="#6366f1" stroke-width="2" stroke-miterlimit="10" />
+                                    <path d="M417.828 85.0572L355.011 147.874C339.422 163.463 314.147 163.463 298.558 147.874L235.741 85.0572C220.152 69.4682 220.152 44.1931 235.741 28.6051L298.558 -34.2119C314.147 -49.8009 339.422 -49.8009 355.011 -34.2119L417.828 28.6051C433.417 44.1931 433.417 69.4682 417.828 85.0572Z" fill="#7b70ef" />
+                                    <path d="M714.621 64.24L541.575 237.286C525.986 252.875 500.711 252.875 485.122 237.286L312.076 64.24C296.487 48.651 296.487 23.376 312.076 7.787L485.122 -165.259C500.711 -180.848 525.986 -180.848 541.575 -165.259L714.621 7.787C730.21 23.377 730.21 48.651 714.621 64.24Z" fill="#f9bf59" />
+                                    <path d="M619.299 318.084L563.736 373.647C548.147 389.236 522.872 389.236 507.283 373.647L451.72 318.084C436.131 302.495 436.131 277.22 451.72 261.631L507.283 206.068C522.872 190.479 548.147 190.479 563.736 206.068L619.299 261.631C634.888 277.221 634.888 302.495 619.299 318.084Z" fill="#6366f1" />
+                                </g>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_login">
+                                    <rect width="560" height="600" fill="white" transform="matrix(0 -1 1 0 0 560)" />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="card-body min-vh-100 d-flex flex-column justify-content-center">
+                        <!-- Logo -->
+                        <div class="auth-brand mb-0 text-center">
+                            <a href="/" class="logo-dark">
+                                <img src="/images/logo-black.png" alt="SamudraHRD" height="28">
+                            </a>
+                            <a href="/" class="logo-light">
+                                <img src="/images/logo.png" alt="SamudraHRD" height="28">
+                            </a>
+                        </div>
+
+                        <div class="mt-auto">
+                            <h4 class="text-center mb-1 fw-bold">Selamat Datang</h4>
+                            <p class="text-muted text-center auth-sub-text mx-auto">
+                                Masukkan username dan password Anda untuk melanjutkan.
+                            </p>
+
+                            <!-- Alert Messages -->
+                            <% if (typeof error_msg !== 'undefined' && error_msg) { %>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="alertError">
+                                <i class="ti ti-alert-circle me-1"></i> <%= error_msg %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <% } %>
+
+                            <% if (typeof success_msg !== 'undefined' && success_msg) { %>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert" id="alertSuccess">
+                                <i class="ti ti-check me-1"></i> <%= success_msg %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <% } %>
+
+                            <!-- Login Error (AJAX) -->
+                            <div class="alert alert-danger alert-dismissible fade d-none" role="alert" id="loginError">
+                                <i class="ti ti-alert-circle me-1"></i>
+                                <span id="loginErrorText"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <!-- Login Form -->
+                            <form id="loginForm" class="mt-4" novalidate>
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username atau Email <span class="text-danger">*</span></label>
+                                    <div class="app-search">
+                                        <input type="text" class="form-control" id="username" name="username"
+                                            placeholder="Masukkan username atau email" required autocomplete="username" autofocus>
+                                        <i data-lucide="circle-user" class="app-search-icon text-muted"></i>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <div class="app-search position-relative">
+                                        <input type="password" class="form-control pe-5" id="password" name="password"
+                                            placeholder="••••••••" required autocomplete="current-password">
+                                        <i data-lucide="key-round" class="app-search-icon text-muted"></i>
+                                        <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted pe-3 border-0"
+                                            id="togglePassword" style="z-index: 5;">
+                                            <i class="ti ti-eye fs-18" id="eyeIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input form-check-input-light fs-14" type="checkbox" id="rememberMe" name="remember_me">
+                                        <label class="form-check-label" for="rememberMe">Ingat saya</label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary fw-bold py-2" id="btnLogin">
+                                        <span id="btnLoginText">Masuk</span>
+                                        <span id="btnLoginSpinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <p class="text-center text-muted mt-auto mb-0">
+                            &copy;
+                            <script>document.write(new Date().getFullYear())</script>
+                            SamudraHRD — Sistem Informasi HRD
+                        </p>
+                    </div>
+                </div>
+                <!-- End Auth Box Content -->
+            </div>
+            <div class="col">
+                <div class="h-100 position-relative card-side-img rounded-0 overflow-hidden">
+                    <div class="p-4 card-img-overlay auth-overlay d-flex align-items-end justify-content-center">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('loginForm');
+        const btnLogin = document.getElementById('btnLogin');
+        const btnLoginText = document.getElementById('btnLoginText');
+        const btnLoginSpinner = document.getElementById('btnLoginSpinner');
+        const loginError = document.getElementById('loginError');
+        const loginErrorText = document.getElementById('loginErrorText');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        // Toggle password visibility
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.className = type === 'password' ? 'ti ti-eye fs-18' : 'ti ti-eye-off fs-18';
+        });
+
+        // Handle form submit
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = passwordInput.value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            if (!username || !password) {
+                showError('Username dan password wajib diisi.');
+                return;
+            }
+
+            // Show loading
+            setLoading(true);
+
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        remember_me: rememberMe,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Login berhasil — redirect ke dashboard
+                    window.location.href = '/';
+                } else {
+                    showError(data.error?.message || 'Login gagal. Silakan coba lagi.');
+                }
+            } catch (err) {
+                showError('Terjadi kesalahan koneksi. Silakan coba lagi.');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function showError(message) {
+            loginErrorText.textContent = message;
+            loginError.classList.remove('d-none');
+            loginError.classList.add('show');
+        }
+
+        function setLoading(loading) {
+            btnLogin.disabled = loading;
+            btnLoginText.textContent = loading ? 'Memproses...' : 'Masuk';
+            btnLoginSpinner.classList.toggle('d-none', !loading);
+        }
+    });
+    </script>
+</body>
+
+</html>

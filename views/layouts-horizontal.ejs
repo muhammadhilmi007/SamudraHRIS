@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-layout="topnav" data-topbar-color="dark" data-menu-color="light">
+
+<head>
+    <%- include('partials/title-meta') %>
+
+    <%- include('partials/head-css') %>
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div class="wrapper">
+
+        <%- include('partials/topbar') %>
+
+        <%- include('partials/horizontal-nav') %>
+
+        <!-- ============================================================== -->
+        <!-- Start Main Content -->
+        <!-- ============================================================== -->
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <%- include('partials/page-title') %>
+
+                
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h4 class="m-0">Your custom content here</h4>
+                            </div> <!-- end card-body-->
+                        </div> <!-- end card-->
+                    </div> <!-- end col-->
+                </div>
+                <!-- end row-->
+
+            </div>
+            <!-- container -->
+
+            <%- include('partials/footer') %>
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- End of Main Content -->
+        <!-- ============================================================== -->
+
+    </div>
+    <!-- END wrapper -->
+
+    <%- include('partials/customizer') %>
+
+    <%- include('partials/footer-scripts') %>
+
+</body>
+
+</html>

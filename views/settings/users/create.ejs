@@ -1,0 +1,154 @@
+<%- include('../../partials/html') %>
+
+<head>
+    <%- include('../../partials/title-meta') %>
+    <%- include('../../partials/head-css') %>
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div class="wrapper">
+
+        <%- include('../../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+
+                <%- include('../../partials/page-title') %>
+
+                <div class="row">
+                    <div class="col-lg-8 col-xl-6 mx-auto">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Form Tambah Pengguna</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="createUserForm" novalidate>
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="username" name="username"
+                                            placeholder="contoh: budi_admin" required>
+                                        <div class="form-text">Huruf kecil, angka, underscore. Min 4 karakter.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email"
+                                            placeholder="contoh: budi@samudrahrd.com" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="password" name="password"
+                                            placeholder="Kosongkan untuk generate otomatis" minlength="8">
+                                        <div class="form-text">Min 8 karakter. Jika kosong, password akan di-generate otomatis.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="role_id" name="role_id" required>
+                                            <option value="">— Pilih Role —</option>
+                                            <% if (typeof roles !== 'undefined') { %>
+                                                <% roles.forEach(function(role) { %>
+                                                <option value="<%= role._id %>" data-slug="<%= role.slug %>"><%= role.name %></option>
+                                                <% }); %>
+                                            <% } %>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3" id="branchGroup">
+                                        <label for="branch_id" class="form-label">Cabang <span class="text-danger" id="branchRequired">*</span></label>
+                                        <select class="form-select" id="branch_id" name="branch_id">
+                                            <option value="">— Pilih Cabang —</option>
+                                            <% if (typeof branches !== 'undefined') { %>
+                                                <% branches.forEach(function(branch) { %>
+                                                <option value="<%= branch._id %>"><%= branch.name %> (<%= branch.branch_code %>)</option>
+                                                <% }); %>
+                                            <% } %>
+                                        </select>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                                            <i class="ti ti-check me-1"></i> Simpan
+                                        </button>
+                                        <a href="/sistem/pengguna" class="btn btn-light">Batal</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <%- include('../../partials/footer-scripts') %>
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="/plugins/sweetalert2/sweetalert2.min.css">
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('createUserForm');
+        const roleSelect = document.getElementById('role_id');
+        const branchGroup = document.getElementById('branchGroup');
+        const branchRequired = document.getElementById('branchRequired');
+
+        // Show/hide branch based on role
+        roleSelect.addEventListener('change', function() {
+            const slug = this.options[this.selectedIndex]?.dataset?.slug;
+            const needsBranch = ['kepala_cabang', 'staff_admin', 'kasir'].includes(slug);
+            branchRequired.style.display = needsBranch ? 'inline' : 'none';
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const data = {
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value || undefined,
+                role_id: document.getElementById('role_id').value,
+                branch_id: document.getElementById('branch_id').value || undefined,
+            };
+
+            try {
+                const response = await fetch('/api/v1/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    let message = 'Pengguna <strong>' + data.username + '</strong> berhasil dibuat.';
+                    if (result.data.generated_password) {
+                        message += '<br><br>Password: <code class="fs-16">' + result.data.generated_password + '</code>';
+                    }
+
+                    await Swal.fire({
+                        title: 'Berhasil!',
+                        html: message,
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                    });
+
+                    window.location.href = '/sistem/pengguna';
+                } else {
+                    const errMsg = result.error?.details
+                        ? result.error.details.map(d => d.message).join('<br>')
+                        : result.error?.message || 'Gagal membuat pengguna';
+                    Swal.fire('Error', errMsg, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Terjadi kesalahan koneksi', 'error');
+            }
+        });
+    });
+    </script>
+</body>
+
+</html>
