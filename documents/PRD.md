@@ -181,7 +181,7 @@ Sebagai Manager HRD, saya ingin menonaktifkan karyawan yang resign dengan valida
 | Performa | Batch Payroll | < 30 detik untuk 200 karyawan via background job |
 | Skalabilitas | Concurrent Users | Mendukung 500 concurrent users tanpa degradasi |
 | Ketersediaan | Uptime | 99.5% uptime per bulan (ekskl. scheduled maintenance) |
-| Keamanan | Autentikasi | JWT + 2FA (TOTP) untuk Admin dan Manager HRD |
+| Keamanan | Autentikasi | JWT (access token + refresh token) untuk semua role |
 | Keamanan | Enkripsi | HTTPS TLS 1.3, enkripsi field sensitif di DB |
 | Keamanan | Audit Trail | Semua operasi CRUD dicatat dengan TTL 2 tahun |
 | Usabilitas | Browser Support | Chrome 90+, Firefox 88+, Edge 90+, Safari 14+ |
@@ -207,7 +207,7 @@ Sebagai Manager HRD, saya ingin menonaktifkan karyawan yang resign dengan valida
 | File Storage | MinIO / AWS S3 | Foto absensi, dokumen PDF, ID Card, attachment |
 | PDF Generate | Puppeteer / PDFKit | Generate slip gaji, ID Card, surat HR |
 | QR Code | qrcode (npm) | Generate QR Code karyawan, validasi absensi QR |
-| Auth | JWT + Passport.js | Token-based auth, 2FA via speakeasy (TOTP) |
+| Auth | JWT + bcrypt | Token-based auth (access + refresh token), password hashing |
 | Notifikasi | Telegram Bot API | Notifikasi slip gaji, approval, cicilan via Telegram |
 | Email | Nodemailer + SMTP | Notifikasi email formal (approval, kontrak, dll.) |
 | Validasi | Joi / express-validator | Request validation di layer middleware |
@@ -344,7 +344,7 @@ Skenario B - Nominal ≥ Rp 1.000.000:
 | TTL Index | Time-To-Live Index MongoDB: dokumen otomatis terhapus setelah waktu tertentu. |
 | Cron Job | Tugas terjadwal yang berjalan otomatis di background pada waktu tertentu. |
 | JWT | JSON Web Token: mekanisme autentikasi stateless berbasis token terenkripsi. |
-| 2FA/TOTP | Two-Factor Authentication menggunakan Time-based One-Time Password (Google Authenticator). |
+
 | RBAC | Role-Based Access Control: kontrol akses berdasarkan peran pengguna. |
 | Aging Piutang | Laporan yang mengelompokkan piutang berdasarkan usia keterlambatan pembayaran. |
 

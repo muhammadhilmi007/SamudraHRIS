@@ -49,6 +49,7 @@ const ROLE_PERMISSIONS = {
     'documents:read', 'documents:create', 'documents:update',
     'announcements:read', 'announcements:create', 'announcements:update',
     'users:read', 'users:create', 'users:update',
+    'branches:read', 'branches:update',
   ],
   kepala_cabang: [
     'dashboard:read',

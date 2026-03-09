@@ -1,0 +1,354 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Detail Cabang — ' + branch.name }) %>
+    <%- include('../partials/head-css') %>
+
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="/plugins/sweetalert2/sweetalert2.min.css">
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div class="wrapper">
+
+        <%- include('../partials/menu') %>
+
+        <!-- ============================================================== -->
+        <!-- Start Main Content -->
+        <!-- ============================================================== -->
+        <div class="content-page">
+            <div class="container-fluid">
+
+                <%- include('../partials/page-title', { title: branch.name, subtitle: 'Detail Cabang' }) %>
+
+                <!-- Branch Header -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary-subtle text-primary fs-6 me-2"><%= branch.branch_code %></span>
+                                    <span class="badge bg-<%= branch.is_active ? 'success' : 'danger' %>-subtle text-<%= branch.is_active ? 'success' : 'danger' %>">
+                                        <%= branch.is_active ? 'Aktif' : 'Nonaktif' %>
+                                    </span>
+                                    <p class="text-muted mb-0 mt-1">
+                                        <i class="ti ti-map-pin me-1"></i><%= branch.city || '-' %>, <%= branch.province || '-' %>
+                                    </p>
+                                </div>
+                                <div>
+                                    <a href="/sistem/cabang" class="btn btn-light me-1">
+                                        <i class="ti ti-arrow-left me-1"></i> Kembali
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="nav nav-tabs nav-bordered" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" data-bs-toggle="tab" href="#tab-info" role="tab">
+                                            <i class="ti ti-info-circle me-1"></i> Info Umum
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#tab-meal" role="tab">
+                                            <i class="ti ti-soup me-1"></i> Uang Makan
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#tab-overtime" role="tab">
+                                            <i class="ti ti-clock-hour-4 me-1"></i> Pengaturan Lembur
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" data-bs-toggle="tab" href="#tab-employees" role="tab">
+                                            <i class="ti ti-users me-1"></i> Karyawan
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content pt-3">
+                                    <!-- TAB 1: Info Umum -->
+                                    <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <table class="table table-sm table-borderless">
+                                                    <tr><td class="text-muted" width="40%">Kode Cabang</td><td><strong><%= branch.branch_code %></strong></td></tr>
+                                                    <tr><td class="text-muted">Nama Cabang</td><td><%= branch.name %></td></tr>
+                                                    <tr><td class="text-muted">Alamat</td><td><%= branch.address || '-' %></td></tr>
+                                                    <tr><td class="text-muted">Kota</td><td><%= branch.city || '-' %></td></tr>
+                                                    <tr><td class="text-muted">Provinsi</td><td><%= branch.province || '-' %></td></tr>
+                                                    <tr><td class="text-muted">Telepon</td><td><%= branch.phone || '-' %></td></tr>
+                                                    <tr><td class="text-muted">Email</td><td><%= branch.email || '-' %></td></tr>
+                                                    <tr><td class="text-muted">PIC</td><td><%= branch.pic_name || '-' %></td></tr>
+                                                </table>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="text-primary mb-3"><i class="ti ti-map-pin me-1"></i> Geo-fencing</h6>
+                                                <table class="table table-sm table-borderless">
+                                                    <tr><td class="text-muted" width="40%">Latitude</td><td><%= branch.latitude || '-' %></td></tr>
+                                                    <tr><td class="text-muted">Longitude</td><td><%= branch.longitude || '-' %></td></tr>
+                                                    <tr><td class="text-muted">Radius</td><td><%= branch.geofence_radius || 100 %> meter</td></tr>
+                                                    <tr>
+                                                        <td class="text-muted">Status</td>
+                                                        <td>
+                                                            <span class="badge bg-<%= branch.geofence_enabled ? 'success' : 'secondary' %>">
+                                                                <%= branch.geofence_enabled ? 'Aktif' : 'Nonaktif' %>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <% if (branch.latitude && branch.longitude) { %>
+                                                <div class="mt-2">
+                                                    <iframe
+                                                        width="100%" height="200" style="border:0; border-radius:8px;"
+                                                        loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                                                        src="https://maps.google.com/maps?q=<%= branch.latitude %>,<%= branch.longitude %>&z=15&output=embed">
+                                                    </iframe>
+                                                </div>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 2: Uang Makan -->
+                                    <div class="tab-pane fade" id="tab-meal" role="tabpanel">
+                                        <form id="mealForm">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Nominal per Hari (Rp) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" id="meal_amount" min="0"
+                                                           value="<%= branch.meal_allowance_rule?.amount || 0 %>">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Minimum Jam Kerja <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" id="meal_min_hours" min="0" max="24" step="0.5"
+                                                           value="<%= branch.meal_allowance_rule?.min_work_hours || 8 %>">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Toleransi Terlambat (menit)</label>
+                                                    <input type="number" class="form-control" id="meal_late_tolerance" min="0"
+                                                           value="<%= branch.meal_allowance_rule?.late_tolerance_minutes || 0 %>">
+                                                </div>
+                                            </div>
+
+                                            <div class="alert alert-info d-flex align-items-center" id="mealPreview">
+                                                <i class="ti ti-info-circle me-2 fs-4"></i>
+                                                <span id="mealPreviewText">
+                                                    Karyawan yang hadir ≥ <strong><%= branch.meal_allowance_rule?.min_work_hours || 8 %> jam</strong>
+                                                    dan terlambat ≤ <strong><%= branch.meal_allowance_rule?.late_tolerance_minutes || 0 %> menit</strong>
+                                                    akan mendapat uang makan <strong>Rp <%= new Intl.NumberFormat('id-ID').format(branch.meal_allowance_rule?.amount || 0) %>/hari</strong>.
+                                                </span>
+                                            </div>
+
+                                            <button type="button" class="btn btn-primary" id="btnSaveMeal">
+                                                <i class="ti ti-check me-1"></i> Simpan Pengaturan Uang Makan
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- TAB 3: Pengaturan Lembur -->
+                                    <div class="tab-pane fade" id="tab-overtime" role="tabpanel">
+                                        <form id="overtimeForm">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Tarif per Jam (Rp) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" id="ot_rate" min="0"
+                                                           value="<%= branch.overtime_rule?.rate_per_hour || 0 %>">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Max Jam / Hari</label>
+                                                    <input type="number" class="form-control" id="ot_max_day" min="0" max="24"
+                                                           value="<%= branch.overtime_rule?.max_hours_per_day || 4 %>">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Max Jam / Bulan</label>
+                                                    <input type="number" class="form-control" id="ot_max_month" min="0"
+                                                           value="<%= branch.overtime_rule?.max_hours_per_month || 40 %>">
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Hari Lembur Diizinkan</label>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <% var dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']; %>
+                                                        <% var eligibleDays = branch.overtime_rule?.eligible_days || [1,2,3,4,5,6,0]; %>
+                                                        <% dayNames.forEach(function(day, idx) { %>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input ot-day-check" type="checkbox" value="<%= idx %>"
+                                                                       id="otDay<%= idx %>" <%= eligibleDays.includes(idx) ? 'checked' : '' %>>
+                                                                <label class="form-check-label" for="otDay<%= idx %>"><%= day %></label>
+                                                            </div>
+                                                        <% }); %>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3 d-flex align-items-end">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="ot_requires_approval"
+                                                               <%= branch.overtime_rule?.requires_approval !== false ? 'checked' : '' %>>
+                                                        <label class="form-check-label" for="ot_requires_approval">Memerlukan Persetujuan</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" class="btn btn-primary" id="btnSaveOvertime">
+                                                <i class="ti ti-check me-1"></i> Simpan Pengaturan Lembur
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- TAB 4: Karyawan -->
+                                    <div class="tab-pane fade" id="tab-employees" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-sm" id="employeeTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Kode</th>
+                                                        <th>Nama Lengkap</th>
+                                                        <th>Jabatan</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="employeeList">
+                                                    <tr><td colspan="5" class="text-center text-muted py-3">
+                                                        <i class="ti ti-info-circle me-1"></i> Modul karyawan akan tersedia di Sprint 3.
+                                                    </td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- container-fluid -->
+        </div> <!-- content-page -->
+
+    </div> <!-- wrapper -->
+
+    <%- include('../partials/footer-scripts') %>
+
+    <!-- SweetAlert2 -->
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var BRANCH_ID = '<%= branch._id %>';
+        var API = '/api/v1/branches';
+
+        // ---- Meal form live preview ----
+        function updateMealPreview() {
+            var amount = parseInt(document.getElementById('meal_amount').value) || 0;
+            var hours = parseFloat(document.getElementById('meal_min_hours').value) || 0;
+            var tol = parseInt(document.getElementById('meal_late_tolerance').value) || 0;
+            var formatted = new Intl.NumberFormat('id-ID').format(amount);
+            document.getElementById('mealPreviewText').innerHTML =
+                'Karyawan yang hadir ≥ <strong>' + hours + ' jam</strong> dan terlambat ≤ <strong>' + tol + ' menit</strong> akan mendapat uang makan <strong>Rp ' + formatted + '/hari</strong>.';
+        }
+        document.getElementById('meal_amount').addEventListener('input', updateMealPreview);
+        document.getElementById('meal_min_hours').addEventListener('input', updateMealPreview);
+        document.getElementById('meal_late_tolerance').addEventListener('input', updateMealPreview);
+
+        // ---- Save Uang Makan ----
+        document.getElementById('btnSaveMeal').addEventListener('click', async function() {
+            var body = {
+                meal_allowance_rule: {
+                    amount: parseInt(document.getElementById('meal_amount').value) || 0,
+                    min_work_hours: parseFloat(document.getElementById('meal_min_hours').value) || 8,
+                    late_tolerance_minutes: parseInt(document.getElementById('meal_late_tolerance').value) || 0,
+                }
+            };
+
+            var confirm = await Swal.fire({
+                title: 'Simpan Pengaturan Uang Makan?',
+                text: 'Perubahan akan berlaku untuk karyawan di cabang ini.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+            });
+            if (!confirm.isConfirmed) return;
+
+            this.disabled = true;
+            try {
+                var res = await fetch(API + '/' + BRANCH_ID, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                var json = await res.json();
+                if (json.success) {
+                    Swal.fire('Berhasil!', 'Pengaturan uang makan berhasil disimpan.', 'success');
+                } else {
+                    Swal.fire('Gagal', json.error?.message || 'Terjadi kesalahan', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal menghubungi server', 'error');
+            } finally {
+                this.disabled = false;
+            }
+        });
+
+        // ---- Save Lembur ----
+        document.getElementById('btnSaveOvertime').addEventListener('click', async function() {
+            var eligibleDays = [];
+            document.querySelectorAll('.ot-day-check:checked').forEach(function(cb) {
+                eligibleDays.push(parseInt(cb.value));
+            });
+
+            var body = {
+                overtime_rule: {
+                    rate_per_hour: parseInt(document.getElementById('ot_rate').value) || 0,
+                    max_hours_per_day: parseInt(document.getElementById('ot_max_day').value) || 4,
+                    max_hours_per_month: parseInt(document.getElementById('ot_max_month').value) || 40,
+                    eligible_days: eligibleDays,
+                    requires_approval: document.getElementById('ot_requires_approval').checked,
+                }
+            };
+
+            var confirm = await Swal.fire({
+                title: 'Simpan Pengaturan Lembur?',
+                text: 'Perubahan akan berlaku untuk karyawan di cabang ini.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+            });
+            if (!confirm.isConfirmed) return;
+
+            this.disabled = true;
+            try {
+                var res = await fetch(API + '/' + BRANCH_ID, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                var json = await res.json();
+                if (json.success) {
+                    Swal.fire('Berhasil!', 'Pengaturan lembur berhasil disimpan.', 'success');
+                } else {
+                    Swal.fire('Gagal', json.error?.message || 'Terjadi kesalahan', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal menghubungi server', 'error');
+            } finally {
+                this.disabled = false;
+            }
+        });
+    });
+    </script>
+</body>
+
+</html>

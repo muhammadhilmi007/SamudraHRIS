@@ -40,8 +40,7 @@ Sistem diberi nama: SIHAPAY (Sistem Informasi HRD, Absensi, dan Payroll).
 | ERD | Entity Relationship Diagram (MongoDB Schema Diagram) |
 | RBAC | Role-Based Access Control |
 | JWT | JSON Web Token |
-| 2FA | Two-Factor Authentication |
-| TOTP | Time-based One-Time Password |
+
 | API | Application Programming Interface |
 | ODM | Object Document Mapper (Mongoose) |
 | CRUD | Create, Read, Update, Delete |
@@ -75,7 +74,7 @@ SIHAPAY adalah sistem informasi mandiri (standalone) yang dapat diintegrasikan d
 | F-12 | Persuratan & Dokumen | Template surat HR, generate surat mutasi/peringatan/pengangkatan, ID Card+QR |
 | F-13 | Notifikasi Telegram | Slip gaji, approval, cicilan jatuh tempo, alert kontrak habis |
 | F-14 | Audit Trail | Log semua aktivitas CRUD+approval dengan TTL 2 tahun |
-| F-15 | Manajemen Pengguna | CRUD users, assign role, 2FA, session management |
+| F-15 | Manajemen Pengguna | CRUD users, assign role, session management |
 
 ## **2.3 Karakteristik Pengguna**
 
@@ -101,12 +100,7 @@ Deskripsi: Sistem harus mengautentikasi pengguna menggunakan kombinasi username/
 - Maksimum 5 kali percobaan login gagal → akun terkunci 30 menit, notifikasi email terkirim.
 - JWT payload berisi: user_id, role, company_id, branch_id.
 
-**REQ-AUTH-002: Two-Factor Authentication (2FA)**
 
-- Wajib untuk role: admin, manager_hrd. Opsional untuk role lain.
-- Implementasi menggunakan TOTP (speakeasy npm) - compatible dengan Google Authenticator.
-- Setup 2FA: generate secret → tampilkan QR Code → verifikasi kode pertama → simpan encrypted secret.
-- Login dengan 2FA: password valid → prompt TOTP 6-digit → verifikasi → issue JWT.
 
 **REQ-AUTH-003: RBAC Middleware**
 
@@ -313,7 +307,7 @@ Trigger: Setelah piutang berstatus approved.
 | 2   | branches | Core | Data cabang dengan geo-fencing dan aturan uang makan/lembur |
 | 3   | departments | Core | Departemen per perusahaan |
 | 4   | positions | Core | Jabatan per departemen, terhubung ke salary_levels |
-| 5   | users | Core | Akun pengguna dengan role, 2FA, Telegram chat ID |
+| 5   | users | Core | Akun pengguna dengan role dan Telegram chat ID |
 | 6   | roles | Core | Role dan array permissions (RBAC) |
 | 7   | approval_flows | Core | Konfigurasi alur persetujuan berbasis kondisi |
 | 8   | employees | HR  | Data karyawan lengkap (ENTITAS PUSAT) |
@@ -372,8 +366,6 @@ Format response error:
 | POST | /auth/login | Public | Login, return JWT + refresh token |
 | POST | /auth/refresh | Public | Refresh access token menggunakan refresh token |
 | POST | /auth/logout | JWT | Invalidate token (blacklist di Redis) |
-| POST | /auth/2fa/setup | JWT | Generate TOTP secret + QR Code untuk setup |
-| POST | /auth/2fa/verify | JWT | Verifikasi TOTP code saat login |
 | POST | /auth/change-password | JWT | Ganti password dengan verifikasi password lama |
 
 ## **6.2 Employee Endpoints**

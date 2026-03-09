@@ -1,0 +1,475 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Data Cabang' }) %>
+    <%- include('../partials/head-css') %>
+
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="/plugins/sweetalert2/sweetalert2.min.css">
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div class="wrapper">
+
+        <%- include('../partials/menu') %>
+
+        <!-- ============================================================== -->
+        <!-- Start Main Content -->
+        <!-- ============================================================== -->
+        <div class="content-page">
+            <div class="container-fluid">
+
+                <%- include('../partials/page-title', { title: 'Data Cabang', subtitle: 'Master Data' }) %>
+
+                <!-- Filter & Actions Row -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Cari</label>
+                                        <div class="input-group">
+                                            <input type="text" id="searchInput" class="form-control" placeholder="Cari cabang...">
+                                            <button class="btn btn-outline-secondary" type="button" id="btnSearch">
+                                                <i class="ti ti-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Kota</label>
+                                        <select id="filterCity" class="form-select">
+                                            <option value="">Semua Kota</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Status</label>
+                                        <select id="filterStatus" class="form-select">
+                                            <option value="">Semua Status</option>
+                                            <option value="true">Aktif</option>
+                                            <option value="false">Nonaktif</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5 text-end">
+                                        <button class="btn btn-primary" id="btnTambahCabang">
+                                            <i class="ti ti-plus me-1"></i> Tambah Cabang
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Cards Grid -->
+                <div class="row" id="branchGrid">
+                    <!-- Cards loaded via AJAX -->
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Memuat data cabang...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5" style="display:none;">
+                    <i class="ti ti-building-store" style="font-size: 48px; color: #adb5bd;"></i>
+                    <h5 class="mt-3 text-muted">Belum ada data cabang</h5>
+                    <p class="text-muted">Tambahkan cabang pertama Anda.</p>
+                </div>
+
+                <!-- Pagination -->
+                <div class="row mt-3">
+                    <div class="col-12 d-flex justify-content-between align-items-center">
+                        <span id="paginationInfo" class="text-muted small"></span>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+                        </nav>
+                    </div>
+                </div>
+
+            </div> <!-- container-fluid -->
+        </div> <!-- content-page -->
+
+    </div> <!-- wrapper -->
+
+    <!-- Modal: Tambah / Edit Cabang -->
+    <div class="modal fade" id="branchModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="branchModalTitle">Tambah Cabang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="branchForm">
+                        <input type="hidden" id="branchId">
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Kode Cabang <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="branch_code" name="branch_code"
+                                       maxlength="10" style="text-transform: uppercase;" required>
+                                <small class="text-muted">Contoh: JKT, SBY, MDN</small>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Nama Cabang <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="branchName" name="name" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Alamat</label>
+                                <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Kota</label>
+                                <input type="text" class="form-control" id="city" name="city">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Provinsi</label>
+                                <input type="text" class="form-control" id="province" name="province">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Telepon</label>
+                                <input type="text" class="form-control" id="phone" name="phone" maxlength="20">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Person in Charge (PIC)</label>
+                                <input type="text" class="form-control" id="pic_name" name="pic_name">
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="text-primary mb-3"><i class="ti ti-map-pin me-1"></i> Geo-fencing</h6>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Latitude</label>
+                                <input type="number" step="any" class="form-control" id="latitude" name="latitude">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Longitude</label>
+                                <input type="number" step="any" class="form-control" id="longitude" name="longitude">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Radius (m)</label>
+                                <input type="number" class="form-control" id="geofence_radius" name="geofence_radius" value="100" min="10">
+                            </div>
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="geofence_enabled" name="geofence_enabled" checked>
+                                    <label class="form-check-label" for="geofence_enabled">Aktif</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveBranch">
+                        <i class="ti ti-check me-1"></i> Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+
+    <!-- SweetAlert2 -->
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const API = '/api/v1/branches';
+        let currentPage = 1;
+        const limit = 12;
+
+        // ---- Load branches ----
+        async function loadBranches(page) {
+            currentPage = page || 1;
+            const search = document.getElementById('searchInput').value;
+            const city = document.getElementById('filterCity').value;
+            const is_active = document.getElementById('filterStatus').value;
+
+            const params = new URLSearchParams({ page: currentPage, limit });
+            if (search) params.append('search', search);
+            if (city) params.append('city', city);
+            if (is_active !== '') params.append('is_active', is_active);
+
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('branchGrid').innerHTML = '';
+            document.getElementById('emptyState').style.display = 'none';
+
+            try {
+                const res = await fetch(API + '?' + params.toString());
+                const json = await res.json();
+
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (!json.success || !json.data.length) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('paginationInfo').textContent = '';
+                    document.getElementById('pagination').innerHTML = '';
+                    return;
+                }
+
+                renderCards(json.data);
+                renderPagination(json.pagination);
+                populateCityFilter(json.data);
+            } catch (err) {
+                document.getElementById('loadingState').style.display = 'none';
+                console.error('Load error:', err);
+            }
+        }
+
+        // ---- Render card grid ----
+        function renderCards(branches) {
+            const grid = document.getElementById('branchGrid');
+            grid.innerHTML = branches.map(function(b) {
+                var badge = b.is_active
+                    ? '<span class="badge bg-success-subtle text-success">Aktif</span>'
+                    : '<span class="badge bg-danger-subtle text-danger">Nonaktif</span>';
+
+                return '<div class="col-xl-4 col-md-6 mb-3">' +
+                    '<div class="card h-100 border ' + (b.is_active ? '' : 'border-danger opacity-75') + '">' +
+                        '<div class="card-body">' +
+                            '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                                '<div>' +
+                                    '<h5 class="card-title mb-1">' + escHtml(b.name) + '</h5>' +
+                                    '<span class="badge bg-primary-subtle text-primary me-1">' + escHtml(b.branch_code) + '</span>' +
+                                    badge +
+                                '</div>' +
+                                '<div class="dropdown">' +
+                                    '<button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="ti ti-dots-vertical"></i></button>' +
+                                    '<ul class="dropdown-menu dropdown-menu-end">' +
+                                        '<li><a class="dropdown-item" href="/sistem/cabang/' + b._id + '"><i class="ti ti-eye me-1"></i> Lihat Detail</a></li>' +
+                                        '<li><a class="dropdown-item btn-edit" href="#" data-id="' + b._id + '"><i class="ti ti-pencil me-1"></i> Edit</a></li>' +
+                                        '<li><hr class="dropdown-divider"></li>' +
+                                        '<li><a class="dropdown-item btn-toggle" href="#" data-id="' + b._id + '" data-active="' + b.is_active + '">' +
+                                            '<i class="ti ti-' + (b.is_active ? 'ban' : 'check') + ' me-1"></i> ' + (b.is_active ? 'Nonaktifkan' : 'Aktifkan') +
+                                        '</a></li>' +
+                                    '</ul>' +
+                                '</div>' +
+                            '</div>' +
+                            '<p class="text-muted small mb-3"><i class="ti ti-map-pin me-1"></i>' + escHtml(b.city || '-') + ', ' + escHtml(b.province || '-') + '</p>' +
+                            '<div class="row text-center">' +
+                                '<div class="col-6"><div class="p-2 rounded bg-light"><h4 class="mb-0 text-primary">' + (b.employee_count || 0) + '</h4><small class="text-muted">Karyawan</small></div></div>' +
+                                '<div class="col-6"><div class="p-2 rounded bg-light"><h4 class="mb-0 text-info">' + (b.geofence_radius || 100) + 'm</h4><small class="text-muted">Radius</small></div></div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="card-footer bg-light d-flex justify-content-between align-items-center">' +
+                            '<small class="text-muted"><i class="ti ti-coin me-1"></i>Uang Makan: Rp ' + formatRupiah(b.meal_allowance_rule?.amount || 0) + '</small>' +
+                            '<a href="/sistem/cabang/' + b._id + '" class="btn btn-sm btn-outline-primary">Detail</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        // ---- Pagination ----
+        function renderPagination(p) {
+            if (!p) return;
+            document.getElementById('paginationInfo').textContent =
+                'Menampilkan ' + ((p.page - 1) * p.limit + 1) + '–' + Math.min(p.page * p.limit, p.total) + ' dari ' + p.total + ' cabang';
+
+            var nav = document.getElementById('pagination');
+            var html = '';
+            if (p.hasPrevPage) html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (p.page - 1) + '">&laquo;</a></li>';
+            for (var i = 1; i <= p.totalPages; i++) {
+                html += '<li class="page-item ' + (i === p.page ? 'active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+            }
+            if (p.hasNextPage) html += '<li class="page-item"><a class="page-link" href="#" data-page="' + (p.page + 1) + '">&raquo;</a></li>';
+            nav.innerHTML = html;
+        }
+
+        document.getElementById('pagination').addEventListener('click', function(e) {
+            e.preventDefault();
+            var page = e.target.dataset.page;
+            if (page) loadBranches(parseInt(page));
+        });
+
+        // ---- City filter ----
+        function populateCityFilter(branches) {
+            var select = document.getElementById('filterCity');
+            if (select.options.length > 1) return;
+            var cities = [];
+            branches.forEach(function(b) { if (b.city && cities.indexOf(b.city) === -1) cities.push(b.city); });
+            cities.sort();
+            cities.forEach(function(c) {
+                var opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                select.appendChild(opt);
+            });
+        }
+
+        // ---- Filter events ----
+        document.getElementById('btnSearch').addEventListener('click', function() { loadBranches(1); });
+        document.getElementById('searchInput').addEventListener('keyup', function(e) { if (e.key === 'Enter') loadBranches(1); });
+        document.getElementById('filterCity').addEventListener('change', function() { loadBranches(1); });
+        document.getElementById('filterStatus').addEventListener('change', function() { loadBranches(1); });
+
+        // ---- Tambah Cabang ----
+        document.getElementById('btnTambahCabang').addEventListener('click', function() {
+            document.getElementById('branchId').value = '';
+            document.getElementById('branchModalTitle').textContent = 'Tambah Cabang';
+            document.getElementById('branchForm').reset();
+            document.getElementById('branch_code').removeAttribute('readonly');
+            document.getElementById('geofence_enabled').checked = true;
+            new bootstrap.Modal(document.getElementById('branchModal')).show();
+        });
+
+        // ---- Grid click handlers (Edit + Toggle) ----
+        document.getElementById('branchGrid').addEventListener('click', async function(e) {
+            var editBtn = e.target.closest('.btn-edit');
+            if (editBtn) {
+                e.preventDefault();
+                var id = editBtn.dataset.id;
+                try {
+                    var res = await fetch(API + '/' + id);
+                    var json = await res.json();
+                    if (!json.success) return;
+                    var b = json.data;
+                    document.getElementById('branchId').value = b._id;
+                    document.getElementById('branchModalTitle').textContent = 'Edit Cabang';
+                    document.getElementById('branch_code').value = b.branch_code;
+                    document.getElementById('branch_code').setAttribute('readonly', true);
+                    document.getElementById('branchName').value = b.name || '';
+                    document.getElementById('address').value = b.address || '';
+                    document.getElementById('city').value = b.city || '';
+                    document.getElementById('province').value = b.province || '';
+                    document.getElementById('phone').value = b.phone || '';
+                    document.getElementById('email').value = b.email || '';
+                    document.getElementById('pic_name').value = b.pic_name || '';
+                    document.getElementById('latitude').value = b.latitude || '';
+                    document.getElementById('longitude').value = b.longitude || '';
+                    document.getElementById('geofence_radius').value = b.geofence_radius || 100;
+                    document.getElementById('geofence_enabled').checked = b.geofence_enabled !== false;
+                    new bootstrap.Modal(document.getElementById('branchModal')).show();
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            var toggleBtn = e.target.closest('.btn-toggle');
+            if (toggleBtn) {
+                e.preventDefault();
+                var tid = toggleBtn.dataset.id;
+                var isActive = toggleBtn.dataset.active === 'true';
+                var action = isActive ? 'menonaktifkan' : 'mengaktifkan';
+
+                var result = await Swal.fire({
+                    title: 'Konfirmasi',
+                    text: 'Anda yakin ingin ' + action + ' cabang ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: 'Batal',
+                });
+                if (!result.isConfirmed) return;
+
+                try {
+                    var tres = await fetch(API + '/' + tid + '/toggle', { method: 'PATCH' });
+                    var tjson = await tres.json();
+                    if (tjson.success) {
+                        Swal.fire('Berhasil!', tjson.message, 'success');
+                        loadBranches(currentPage);
+                    } else {
+                        Swal.fire('Gagal', tjson.error?.message || 'Terjadi kesalahan', 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('Error', 'Gagal menghubungi server', 'error');
+                }
+            }
+        });
+
+        // ---- Save (Create / Update) ----
+        document.getElementById('btnSaveBranch').addEventListener('click', async function() {
+            var id = document.getElementById('branchId').value;
+            var isEdit = !!id;
+
+            var body = {
+                branch_code: document.getElementById('branch_code').value.trim().toUpperCase(),
+                name: document.getElementById('branchName').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                province: document.getElementById('province').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                pic_name: document.getElementById('pic_name').value.trim(),
+                latitude: parseFloat(document.getElementById('latitude').value) || null,
+                longitude: parseFloat(document.getElementById('longitude').value) || null,
+                geofence_radius: parseInt(document.getElementById('geofence_radius').value) || 100,
+                geofence_enabled: document.getElementById('geofence_enabled').checked,
+            };
+
+            if (!body.branch_code || !body.name) {
+                return Swal.fire('Perhatian', 'Kode cabang dan nama cabang wajib diisi', 'warning');
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';
+
+            try {
+                var url = isEdit ? API + '/' + id : API;
+                var method = isEdit ? 'PUT' : 'POST';
+                var res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                var json = await res.json();
+
+                if (json.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('branchModal')).hide();
+                    Swal.fire('Berhasil!', json.message, 'success');
+                    loadBranches(isEdit ? currentPage : 1);
+                } else {
+                    var msg = json.error?.details
+                        ? json.error.details.map(function(d) { return '• ' + d.message; }).join('\n')
+                        : json.error?.message || 'Terjadi kesalahan';
+                    Swal.fire('Gagal', msg, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal menghubungi server', 'error');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i class="ti ti-check me-1"></i> Simpan';
+            }
+        });
+
+        // ---- Helpers ----
+        function escHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+
+        // ---- Initial load ----
+        loadBranches(1);
+    });
+    </script>
+</body>
+
+</html>

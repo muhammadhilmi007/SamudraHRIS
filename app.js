@@ -34,6 +34,9 @@ const templateRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 
+// Sprint 2 — Branch Management Routes
+const branchRoutes = require('./routes/branch.routes');
+
 // ============================================================
 // Initialize Express App
 // ============================================================
@@ -145,6 +148,11 @@ app.use((req, res, next) => {
 // ============================================================
 app.use('/', authRoutes);
 app.use('/', userRoutes);
+
+// ============================================================
+// Sprint 2 — Branch Management Routes
+// ============================================================
+app.use('/', branchRoutes);
 
 // ============================================================
 // Routes — UBold Template Demo (akan diganti per sprint)

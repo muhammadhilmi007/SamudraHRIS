@@ -29,7 +29,7 @@ TEMPLATE: UBold Admin Dashboard (Express+EJS) — semua views extend dari views/
 BUILD: Gulp (SCSS→CSS, plugin copy) — jalankan `gulp build` sebelum start
 PATTERN: MVC (Models / Controllers / Views) + Service Layer
 FOLDER: Backend logic di root-level (config/, controllers/, middlewares/, services/, utils/)
-         BUKAN di src/ — karena project sudah pakai template UBold
+         BUKAN di  — karena project sudah pakai template UBold
 STYLE: ESLint Airbnb, async/await (NO callbacks), try-catch wajib di semua controller
 AUTH: JWT (access 1 jam + refresh 7 hari) + bcrypt password
 RBAC: Middleware checkPermission('module', 'action') di setiap route
@@ -76,7 +76,7 @@ Membuat struktur folder, konfigurasi awal, koneksi database, dan middleware dasa
 ### 📁 Files to Create / Modify
 ```
 samudraHRD/                   (template UBold sudah ada)
-├── config/                   ← BARU, di root level (bukan src/)
+├── config/                   ← BARU, di root level (bukan )
 │   ├── database.js
 │   ├── constants.js
 │   └── multer.js
@@ -116,7 +116,7 @@ Buat file-file berikut:
    - express, mongoose, ejs, express-ejs-layouts
    - dotenv, helmet, cors, compression, morgan
    - express-rate-limit, express-validator, joi
-   - bcryptjs, jsonwebtoken, speakeasy, qrcode
+   - bcryptjs, jsonwebtoken, qrcode
    - multer, sharp, uuid
    - nodemailer, node-telegram-bot-api
    - agenda, node-cron
@@ -189,7 +189,7 @@ Semua file harus production-ready dengan komentar yang jelas.
 
 ```
 Buatkan folder-folder backend berikut di ROOT level project
-(BUKAN di dalam src/ — karena project pakai template UBold):
+(BUKAN di dalam  — karena project pakai template UBold):
 
 config/               # Konfigurasi (DB, constants, multer, socket)
 models/               # SUDAH ADA dari template — 13 Mongoose schema files
@@ -249,7 +249,7 @@ tests/                # Jest test files
 postman/              # Postman collections
 
 CATATAN PENTING:
-- JANGAN buat folder src/ — semua backend di root level
+- JANGAN buat folder  — semua backend di root level
 - Template UBold sudah menyediakan views/, public/, routes/
 - Hanya buat folder baru yang belum ada (.gitkeep di folder kosong)
 ```
@@ -266,7 +266,7 @@ CATATAN PENTING:
 ## Sprint 1 — Auth & RBAC
 
 ### 🎯 Goal
-Sistem autentikasi JWT lengkap tanpa 2FA (TOTP), RBAC middleware, dan manajemen pengguna.
+Sistem autentikasi JWT lengkap, RBAC middleware, dan manajemen pengguna.
 
 ### 📁 Files to Create
 ```
@@ -359,12 +359,8 @@ Buat middlewares/branchFilter.js:
 
 Buat routes/auth.routes.js:
 POST /api/v1/auth/login
-POST /api/v1/auth/verify-2fa
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout          [authenticate]
-POST /api/v1/auth/setup-2fa       [authenticate]
-POST /api/v1/auth/confirm-2fa     [authenticate]
-POST /api/v1/auth/disable-2fa     [authenticate]
 POST /api/v1/auth/change-password [authenticate]
 
 Buat views/auth/login.ejs:
@@ -385,7 +381,7 @@ Sertakan JSDoc comment untuk setiap fungsi.
 ```
 Buatkan fitur manajemen pengguna (User Management) untuk samudraHRD.
 
-Buat src/controllers/auth/userController.js dengan CRUD:
+Buat controllers/auth/userController.js dengan CRUD:
 
 1. getAllUsers(req, res) — GET /api/v1/users
    - Filter: role, branch_id, is_active, search (nama/username/email)
@@ -436,8 +432,7 @@ Gunakan Bootstrap 5.3 untuk semua UI. Validasi form di frontend (Vanilla JS) dan
 - [ ] Login berhasil, JWT tersimpan di httpOnly cookie
 - [ ] Token expired → 401 dengan pesan jelas
 - [ ] Role `kasir` tidak bisa akses endpoint `/api/v1/users`
-- [ ] 2FA setup: scan QR di Google Authenticator, input TOTP → login berhasil
-- [ ] 5x login gagal → akun terkunci, email notifikasi terkirim
+- [ ] 5x login gagal → akun terkunci
 - [ ] Halaman user management menampilkan data dengan pagination
 
 ---
@@ -455,7 +450,7 @@ Buatkan modul Branch Management lengkap untuk samudraHRD.
 MODEL: Gunakan branch.model.js yang sudah ada (35 fields termasuk geo-fencing,
 meal_allowance_rule, dan overtime_rule sebagai sub-schema).
 
-Buat src/controllers/branches/branchController.js:
+Buat controllers/branches/branchController.js:
 
 1. getAllBranches(req, res):
    - Filter: is_active, city, search (nama/kode)
@@ -508,7 +503,7 @@ Wajib catat semua perubahan ke activity_logs.
 ```
 Buatkan CRUD untuk Department, Position, dan Salary Level dalam satu file controller.
 
-Buat src/controllers/branches/orgController.js dengan:
+Buat controllers/branches/orgController.js dengan:
 
 === DEPARTMENT ===
 - CRUD standar dengan validasi code unik per company
@@ -561,7 +556,7 @@ Buatkan UI konfigurasi Approval Flow untuk samudraHRD.
 Model: approval_flows collection (module, condition_field, condition_operator,
 condition_value, approver_role_id, level, notify_roles)
 
-Buat src/controllers/system/approvalFlowController.js:
+Buat controllers/system/approvalFlowController.js:
 
 1. getApprovalFlows(req, res):
    - Group by module
@@ -605,7 +600,7 @@ Buatkan modul Employee Management lengkap untuk samudraHRD.
 
 MODEL: Gunakan employee.model.js yang sudah ada (49 fields).
 
-Buat src/services/EmployeeService.js dengan fungsi:
+Buat services/EmployeeService.js dengan fungsi:
 
 1. generateEmployeeCode(branchCode, status, companyId):
    - Format: [KODE_CABANG]-[STATUS_2CHAR]-[URUT_4DIGIT]
@@ -623,7 +618,7 @@ Buat src/services/EmployeeService.js dengan fungsi:
 3. calculateAge(birthDate): return umur dalam tahun
 4. calculateTenure(joinDate): return masa kerja dalam format "X tahun Y bulan"
 
-Buat src/controllers/employees/employeeController.js:
+Buat controllers/employees/employeeController.js:
 
 1. getAllEmployees(req, res):
    - Filter: branch_id (auto dari branchFilter middleware), department_id,
@@ -716,7 +711,7 @@ TAB 5 — Riwayat Piutang:
 - Summary: Total piutang, Sudah dibayar, Sisa
 - Tabel: No. Piutang, Tgl Pengajuan, Nominal, Cicilan, Sisa, Status (badge), Aksi
 
-Buat src/controllers/employees/employeeDocumentController.js:
+Buat controllers/employees/employeeDocumentController.js:
 - uploadDocument(req, res) → upload ke MinIO, simpan ke employee_documents
 - deleteDocument(req, res) → soft delete atau hard delete
 - viewDocument(req, res) → generate signed URL dari MinIO
@@ -729,7 +724,7 @@ Buatkan fitur Mutasi Karyawan dan Offboarding untuk samudraHRD.
 
 === MUTASI KARYAWAN ===
 
-Buat src/controllers/employees/mutationController.js:
+Buat controllers/employees/mutationController.js:
 
 1. createMutation(req, res) — POST /employees/:id/mutate:
    - Validasi: to_branch_id berbeda dengan current branch_id
@@ -759,7 +754,7 @@ Buat views/employees/mutation-form.ejs:
 
 === OFFBOARDING ===
 
-Buat src/controllers/employees/offboardingController.js:
+Buat controllers/employees/offboardingController.js:
 
 1. initiateOffboarding(req, res) — POST /employees/:id/offboard:
    REQUEST BODY: { resign_date, resign_reason, last_working_date }
@@ -825,7 +820,7 @@ Sistem absensi 4 metode: QR Code + Geo-fencing, Button Check-in, Manual (foto + 
 Buatkan modul Attendance untuk samudraHRD yang mendukung 3 metode (QR, Button, Manual).
 (Metode ke-4 Face Recognition dibuat di Sprint 11 bersama mobile app)
 
-Buat src/services/AttendanceService.js dengan fungsi:
+Buat services/AttendanceService.js dengan fungsi:
 
 1. calculateStatus(checkInTime, schedule):
    - Bandingkan checkInTime dengan schedule.check_in_time + late_tolerance_minutes
@@ -853,7 +848,7 @@ Buat src/services/AttendanceService.js dengan fungsi:
    - Cek timestamp tidak lebih dari 30 detik yang lalu
    - Return: { valid, employeeCode }
 
-Buat src/controllers/attendance/attendanceController.js:
+Buat controllers/attendance/attendanceController.js:
 
 1. qrCheckin(req, res) — POST /attendance/qr-checkin:
    BODY: { qr_token, latitude, longitude }
@@ -933,7 +928,7 @@ Buatkan fitur Jadwal Kerja, Rekap Periode, dan Cron Job rekap absensi.
 
 === JADWAL KERJA ===
 
-Buat src/controllers/attendance/scheduleController.js:
+Buat controllers/attendance/scheduleController.js:
 - CRUD work_schedules per cabang
 - GET /schedules?branch_id=xxx
 - Satu cabang bisa punya multiple jadwal (Shift Pagi, Shift Malam, Normal)
@@ -950,7 +945,7 @@ Buat views/attendance/schedules.ejs:
 
 === REKAP PERIODE ===
 
-Buat src/controllers/attendance/recapController.js:
+Buat controllers/attendance/recapController.js:
 
 1. getRecap(req, res) — GET /attendance/recap:
    - Filter: branch_id, department_id, employee_id, period_year, period_month
@@ -978,7 +973,7 @@ Buat views/attendance/recap.ejs:
 
 === CRON JOB ===
 
-Buat src/jobs/attendanceRecapJob.js:
+Buat jobs/attendanceRecapJob.js:
 - Schedule: '0 1 1 * *' (jam 01:00 tanggal 1 setiap bulan)
 - Fungsi generateMonthlyRecap(year, month):
   1. Ambil semua karyawan aktif
@@ -1016,7 +1011,7 @@ Buatkan modul Cuti dan Lembur lengkap untuk samudraHRD.
 
 === CUTI ===
 
-Buat src/controllers/attendance/leaveController.js:
+Buat controllers/attendance/leaveController.js:
 
 1. getLeaveTypes(req, res) + CRUD leave_types (admin/manager_hrd):
    - name, code, max_days_per_year, requires_document, is_paid, applicable_status, min_tenure_months
@@ -1061,7 +1056,7 @@ Buat views/attendance/leave/form.ejs:
 
 === LEMBUR ===
 
-Buat src/controllers/attendance/overtimeController.js:
+Buat controllers/attendance/overtimeController.js:
 
 1. submitOvertimeRequest(req, res):
    BODY: { overtime_date, hours_requested, reason, attendance_id }
@@ -1105,7 +1100,7 @@ Inti sistem penggajian: kalkulasi otomatis, prorata untuk mutasi/masuk-tengah-pe
 Buatkan PayrollService.js sebagai mesin kalkulasi gaji utama samudraHRD.
 Ini adalah bagian PALING KRITIS dari aplikasi.
 
-Buat src/services/PayrollService.js dengan fungsi-fungsi berikut:
+Buat services/PayrollService.js dengan fungsi-fungsi berikut:
 
 === calculateEmployeePayroll(employeeId, payrollId, periodStart, periodEnd) ===
 
@@ -1200,7 +1195,7 @@ Semua operasi DB dalam satu batch menggunakan bulkWrite() untuk performa.
 ```
 Buatkan controller dan UI untuk modul Payroll samudraHRD.
 
-Buat src/controllers/payroll/payrollController.js:
+Buat controllers/payroll/payrollController.js:
 
 1. initPayroll(req, res) — POST /payrolls:
    BODY: { branch_id, period_start, period_end, cycle_type }
@@ -1276,7 +1271,7 @@ Buat views/payroll/slip-template.ejs (template HTML untuk generate PDF):
 ```
 Buatkan PdfService.js untuk generate slip gaji menggunakan Puppeteer.
 
-Buat src/services/PdfService.js:
+Buat services/PdfService.js:
 
 === generateSalarySlip(payrollDetailId) ===
 
@@ -1326,7 +1321,7 @@ Buat src/services/PdfService.js:
   - Sheet 3: Format Transfer Bank (BCA: no_rek, nama, nominal)
   - Style: header bold, number format Rupiah, alternating row color
 
-Buat src/services/ExcelService.js:
+Buat services/ExcelService.js:
   generatePayrollExcel(payrollId) → Buffer xlsx
   generateAttendanceExcel(filters) → Buffer xlsx
   generateEmployeeExcel(filters) → Buffer xlsx
@@ -1350,7 +1345,7 @@ Buat src/services/ExcelService.js:
 ```
 Buatkan modul Piutang (Receivable) lengkap untuk samudraHRD.
 
-Buat src/services/ReceivableService.js:
+Buat services/ReceivableService.js:
 
 1. validateNewRequest(employeeId, amount):
    - Cek apakah ada receivables dengan status = 'active' → throw error ACTIVE_RECEIVABLE_EXISTS
@@ -1382,7 +1377,7 @@ Buat src/services/ReceivableService.js:
    - Jika >= settings.max_overdue_count_blacklist: set blacklist flag
    - Notifikasi ke Manager HRD
 
-Buat src/controllers/receivables/receivableController.js:
+Buat controllers/receivables/receivableController.js:
 
 1. submitRequest(req, res) — POST /receivables:
    BODY: { amount, purpose, installment_count, installment_amount, payment_method }
@@ -1456,7 +1451,7 @@ Buat views/receivables/detail.ejs:
 ```
 Buatkan Cron Jobs untuk modul Piutang samudraHRD.
 
-Buat src/jobs/receivableJob.js:
+Buat jobs/receivableJob.js:
 
 === JOB 1: Scan Jatuh Tempo (setiap hari jam 07:00) ===
 Schedule: '0 7 * * *'
@@ -1519,7 +1514,7 @@ async function markOverdueInstallments() {
 }
 
 Sertakan logging dengan winston untuk setiap job yang berjalan.
-Buat helper function formatRupiah(number) dan formatDate(date) di src/utils/formatter.js.
+Buat helper function formatRupiah(number) dan formatDate(date) di utils/formatter.js.
 ```
 
 ### ✅ Acceptance Criteria S-07
@@ -1540,7 +1535,7 @@ Buatkan Dashboard dan modul Laporan lengkap untuk samudraHRD.
 
 === DASHBOARD API ===
 
-Buat src/controllers/dashboard/dashboardController.js:
+Buat controllers/dashboard/dashboardController.js:
 
 1. getAdminDashboard(req, res) — GET /dashboard/admin:
    Data yang dikembalikan:
@@ -1617,7 +1612,7 @@ Buat views/dashboard/branch.ejs:
 
 === LAPORAN ===
 
-Buat src/controllers/reports/reportController.js:
+Buat controllers/reports/reportController.js:
 
 1. employeeReport(req, res) — GET /reports/employees:
    Filter: branch, dept, status, join_date_range
@@ -1663,7 +1658,7 @@ Buatkan sistem notifikasi terpusat dan Telegram Bot untuk samudraHRD.
 
 === NOTIFICATION SERVICE ===
 
-Buat src/services/NotificationService.js:
+Buat services/NotificationService.js:
 
 async send({ user_id, company_id, type, title, message, channel, reference_id, reference_type, action_url }):
   1. Simpan ke notifications collection
@@ -1691,7 +1686,7 @@ Buat PATCH /notifications/read-all endpoint:
 
 === EMAIL SERVICE ===
 
-Buat src/services/EmailService.js dengan nodemailer:
+Buat services/EmailService.js dengan nodemailer:
 
 send({ to, subject, template, data }):
   - Load EJS template dari views/emails/[template].ejs
@@ -1724,7 +1719,7 @@ Di views/layouts/main.ejs:
 ```
 Buatkan Telegram Bot lengkap untuk samudraHRD menggunakan node-telegram-bot-api.
 
-Buat src/services/TelegramService.js:
+Buat services/TelegramService.js:
 
 === BOT SETUP ===
 const TelegramBot = require('node-telegram-bot-api');
@@ -1842,7 +1837,7 @@ Buatkan modul Persuratan, Template Dokumen, dan ID Card Generator untuk samudraH
 
 === TEMPLATE MANAGEMENT ===
 
-Buat src/controllers/documents/templateController.js:
+Buat controllers/documents/templateController.js:
 - CRUD document_templates
 - Template menggunakan variabel dalam format: {{variable_name}}
 - Available variables: employee.*,  branch.*, company.*, position.*, department.*,
@@ -1856,7 +1851,7 @@ Buat views/documents/templates/editor.ejs:
 
 === GENERATE SURAT ===
 
-Buat src/controllers/documents/hrDocumentController.js:
+Buat controllers/documents/hrDocumentController.js:
 
 1. generateDocument(req, res) — POST /documents/generate:
    BODY: { template_id, employee_id, extra_data }
@@ -1888,7 +1883,7 @@ Buat views/documents/history.ejs:
 
 === ID CARD GENERATOR ===
 
-Buat src/services/IdCardService.js:
+Buat services/IdCardService.js:
 
 generateIdCard(employeeId):
   1. Ambil data karyawan + company + branch
@@ -1941,7 +1936,7 @@ Install dependencies:
 
 Buat struktur folder:
 mobile/
-├── src/
+├── 
 │   ├── screens/
 │   │   ├── LoginScreen.js
 │   │   ├── HomeScreen.js
@@ -2042,7 +2037,7 @@ Handle semua error case dengan pesan yang user-friendly dalam Bahasa Indonesia.
 ```
 Buatkan backend endpoint untuk Face Recognition attendance samudraHRD.
 
-Buat src/controllers/attendance/faceAttendanceController.js:
+Buat controllers/attendance/faceAttendanceController.js:
 
 POST /api/v1/attendance/face-checkin:
 
@@ -2240,7 +2235,7 @@ Buatkan sistem Audit Trail lengkap dan security hardening untuk samudraHRD.
 
 === AUDIT TRAIL MIDDLEWARE ===
 
-Buat src/middlewares/auditLogger.js:
+Buat middlewares/auditLogger.js:
 
 const auditLog = (module, action) => async (req, res, next) => {
   // Capture response body
@@ -2292,7 +2287,7 @@ Buat GET /api/v1/audit-logs dengan pagination dan filter.
 
 === SECURITY HARDENING ===
 
-Update src/app.js dengan:
+Update app.js dengan:
 
 1. Helmet.js konfigurasi lengkap:
    app.use(helmet({
@@ -2321,7 +2316,7 @@ Update src/app.js dengan:
    X-Request-ID header (uuid per request untuk tracing)
    X-Response-Time header
 
-5. Buat src/middlewares/requestId.js:
+5. Buat middlewares/requestId.js:
    Tambahkan request ID ke setiap request untuk correlation logging
 ```
 
@@ -2332,7 +2327,7 @@ Buatkan optimasi performa dan finalisasi untuk samudraHRD.
 
 === REDIS CACHING ===
 
-Buat src/utils/cache.js dengan ioredis:
+Buat utils/cache.js dengan ioredis:
 
 const cache = {
   async get(key) { ... },
@@ -2349,7 +2344,7 @@ Implementasikan caching di:
 
 === SOCKET.IO SETUP ===
 
-Buat src/config/socket.js:
+Buat config/socket.js:
 
 io.on('connection', (socket) => {
   // Join room berdasarkan role dan branch
@@ -2377,7 +2372,7 @@ Events yang perlu di-emit:
 
 === PAGINATION HELPER ===
 
-Buat src/utils/pagination.js:
+Buat utils/pagination.js:
 
 const paginate = async (Model, query, options) => {
   const { page = 1, limit = 10, sort = '-created_at', populate = [] } = options;
@@ -2500,7 +2495,7 @@ yang mencakup: happy path, edge cases, dan error cases.
 | Kebutuhan | Sprint |
 |-----------|--------|
 | Setup project dari nol | S-00 |
-| Sistem login + 2FA | S-01-A |
+| Sistem login + JWT Auth | S-01-A |
 | User management | S-01-B |
 | CRUD cabang + geo-fencing | S-02-A |
 | Struktur org + grade gaji | S-02-B |
