@@ -59,7 +59,7 @@ const ROLE_PERMISSIONS = {
   ],
   kepala_cabang: [
     'dashboard:read',
-    'employees:read', 'employees:export',
+    'employees:read', 'employees:create', 'employees:update', 'employees:export',
     'attendance:read', 'attendance:approve', 'attendance:export',
     'payroll:read', 'payroll:export',
     'receivables:read', 'receivables:create', 'receivables:approve',

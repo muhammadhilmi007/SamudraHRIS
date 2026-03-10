@@ -43,6 +43,9 @@ const orgRoutes = require('./routes/org.routes');
 // Sprint 2 — System Config (Approval Flow) Routes
 const systemRoutes = require('./routes/system.routes');
 
+// Sprint 3 — Employee Management Routes
+const employeeRoutes = require('./routes/employee.routes');
+
 // ============================================================
 // Initialize Express App
 // ============================================================
@@ -169,6 +172,11 @@ app.use('/', orgRoutes);
 // Sprint 2 — System Routes
 // ============================================================
 app.use('/', systemRoutes);
+
+// ============================================================
+// Sprint 3 — Employee Routes
+// ============================================================
+app.use('/', employeeRoutes);
 
 // ============================================================
 // Routes — UBold Template Demo (akan diganti per sprint)

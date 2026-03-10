@@ -1,0 +1,80 @@
+<!-- mutation-form.ejs -->
+<!-- Modal for Mutasi Karyawan -->
+<div class="modal fade" id="mutationModal" tabindex="-1" aria-labelledby="mutationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-white" id="mutationModalLabel"><i class="ti ti-exchange"></i> Mutasi Karyawan &mdash; <%= employee.full_name %></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formMutation">
+                <div class="modal-body">
+                    
+                    <div class="alert alert-info alert-dismissible bg-info text-white border-0 fade show" role="alert">
+                        <i class="mdi mdi-information-outline me-2"></i><strong>Penting!</strong> 
+                        Pilih atribut yang ingin diubah. Gaji akan dihitung secara prorata pada akhir periode.
+                    </div>
+
+                    <div class="row">
+                        <!-- Current Data (Read Only) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Cabang Saat Ini</label>
+                            <input type="text" class="form-control" value="<%= employee.branch_id ? employee.branch_id.name : '-' %>" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Jabatan Saat Ini</label>
+                            <input type="text" class="form-control" value="<%= employee.position_id ? employee.position_id.name : '-' %>" readonly>
+                        </div>
+                    </div>
+
+                    <hr class="mt-2 mb-3">
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="mut_branch_id" class="form-label">Cabang Tujuan <span class="text-danger">*</span></label>
+                            <select class="form-select select2-mutation" id="mut_branch_id" name="to_branch_id" required>
+                                <option value="">--- Pilih Cabang ---</option>
+                                <!-- Populated via AJAX later or EJS context if passed -->
+                            </select>
+                            <small class="text-primary mt-1 d-block" id="mut_branch_info" style="display:none;"></small>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="mut_department_id" class="form-label">Departemen Baru <span class="text-danger">*</span></label>
+                            <select class="form-select select2-mutation" id="mut_department_id" name="to_department_id" required disabled>
+                                <option value="">--- Pilih Cabang Dulu ---</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="mut_position_id" class="form-label">Jabatan Baru <span class="text-danger">*</span></label>
+                            <select class="form-select select2-mutation" id="mut_position_id" name="to_position_id" required disabled>
+                                <option value="">--- Pilih Departemen Dulu ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="mut_effective_date" class="form-label">Tanggal Efektif <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="mut_effective_date" name="effective_date" required>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="mut_reason" class="form-label">Alasan Mutasi <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="mut_reason" name="reason" rows="3" placeholder="Jelaskan alasan pemindahan/promosi..." required></textarea>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning" id="btnSubmitMutation">
+                        <span class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+                        Proses Mutasi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

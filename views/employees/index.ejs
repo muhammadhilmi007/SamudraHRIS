@@ -1,0 +1,319 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Data Karyawan' }) %>
+    <%- include('../partials/head-css') %>
+    <!-- Datatables css -->
+    <link href="/plugins/datatables/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <!-- Responsive Table css -->
+    <link href="/plugins/datatables/responsive.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        .employee-avatar {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .filter-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <%- include('../partials/page-title', { title: 'Data Karyawan', subtitle: 'Karyawan' }) %>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 class="header-title mb-0">Daftar Karyawan Aktif</h4>
+                                    <div>
+                                        <button class="btn btn-light btn-sm me-1" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                                            <i class="ti ti-filter"></i> Filter
+                                        </button>
+                                        <a href="/karyawan/tambah" class="btn btn-primary btn-sm">
+                                            <i class="ti ti-plus"></i> Tambah Karyawan
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Panel -->
+                                <div class="collapse filter-panel" id="filterPanel">
+                                    <form id="filterForm">
+                                        <div class="row">
+                                            <div class="col-md-3 mb-2">
+                                                <label class="form-label font-12">Cabang</label>
+                                                <select class="form-select form-select-sm" id="filterBranch">
+                                                    <option value="">Semua Cabang</option>
+                                                    <% branches.forEach(b => { %>
+                                                        <option value="<%= b._id %>"><%= b.name %></option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3 mb-2">
+                                                <label class="form-label font-12">Departemen</label>
+                                                <select class="form-select form-select-sm" id="filterDept">
+                                                    <option value="">Semua Departemen</option>
+                                                    <% departments.forEach(d => { %>
+                                                        <option value="<%= d._id %>"><%= d.name %></option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2 mb-2">
+                                                <label class="form-label font-12">Status</label>
+                                                <select class="form-select form-select-sm" id="filterStatus">
+                                                    <option value="">Semua</option>
+                                                    <option value="KT">Tetap (KT)</option>
+                                                    <option value="KL">Kontrak (KL)</option>
+                                                    <option value="Magang">Magang</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2 mb-2">
+                                                <label class="form-label font-12">Siklus Gaji</label>
+                                                <select class="form-select form-select-sm" id="filterCycle">
+                                                    <option value="">Semua</option>
+                                                    <option value="monthly">Bulanan</option>
+                                                    <option value="weekly">Mingguan</option>
+                                                    <option value="daily">Harian</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2 mb-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-sm btn-primary w-100" id="btnApplyFilter">Terapkan Filter</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Input Pencarian -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="ti ti-search"></i></span>
+                                            <input type="text" class="form-control" id="searchInput" placeholder="Cari nama, NIK, atau ID karyawan...">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabel Karyawan -->
+                                <table id="employeeTable" class="table table-centered table-nowrap mb-0 w-100">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 40px;">Avatar</th>
+                                            <th>INFO KARYAWAN</th>
+                                            <th>POSISI / CABANG</th>
+                                            <th>STATUS</th>
+                                            <th>BERGABUNG</th>
+                                            <th class="text-center" style="width: 100px;">AKSI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded via AJAX DataTables -->
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+    <script src="/plugins/jquery/jquery.min.js"></script>
+    <script src="/plugins/datatables/dataTables.min.js"></script>
+    <script src="/plugins/datatables/dataTables.bootstrap5.min.js"></script>
+    <script src="/plugins/datatables/dataTables.responsive.min.js"></script>
+    <script src="/plugins/datatables/responsive.bootstrap5.min.js"></script>
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="/plugins/moment/moment.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const getStatusBadge = (status) => {
+                if (status === 'KT') return '<span class="badge bg-primary">Tetap (KT)</span>';
+                if (status === 'KL') return '<span class="badge bg-success">Kontrak (KL)</span>';
+                if (status === 'Magang') return '<span class="badge bg-warning text-dark">Magang</span>';
+                return `<span class="badge bg-secondary">${status}</span>`;
+            };
+
+            const getCycleBadge = (cycle) => {
+                if(cycle === 'monthly') return '<span class="badge bg-outline-info rounded-pill">Bulanan</span>';
+                if(cycle === 'weekly') return '<span class="badge bg-outline-primary rounded-pill">Mingguan</span>';
+                return '<span class="badge bg-outline-secondary rounded-pill">Harian</span>';
+            };
+
+            // Setup DataTable
+            const table = $('#employeeTable').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ordering: false,
+                lengthChange: false,
+                pageLength: 10,
+                dom: 'rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                language: {
+                    processing: '<div class="spinner-border text-primary" role="status"></div><br><span class="mt-2 text-primary">Memuat data...</span>',
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ karyawan",
+                    emptyTable: "Tidak ada data karyawan ditemukan",
+                    paginate: { previous: "<i class='ti ti-chevron-left'>", next: "<i class='ti ti-chevron-right'>" }
+                },
+                ajax: function(data, callback, settings) {
+                    const page = (data.start / data.length) + 1;
+                    const limit = data.length;
+                    
+                    const queryParams = new URLSearchParams({
+                        page: page,
+                        limit: limit,
+                        search: $('#searchInput').val(),
+                        branch_id: $('#filterBranch').val(),
+                        department_id: $('#filterDept').val(),
+                        status: $('#filterStatus').val(),
+                        payment_cycle: $('#filterCycle').val(),
+                        is_active: 'true'
+                    });
+
+                    fetch(`/api/v1/employees?${queryParams}`)
+                        .then(response => response.json())
+                        .then(res => {
+                            callback({
+                                draw: data.draw,
+                                recordsTotal: res.meta.total,
+                                recordsFiltered: res.meta.total,
+                                data: res.data
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Error fetching employees:', err);
+                            callback({ data: [] });
+                        });
+                },
+                columns: [
+                    { 
+                        data: null, 
+                        render: function(data, type, row) {
+                            const img = row.photo_url ? row.photo_url : '/images/users/user-1.jpg';
+                            return `<img src="${img}" alt="Avatar" class="employee-avatar shadow-sm">`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            return `
+                                <h5 class="m-0 font-14"><a href="/karyawan/detail/${row._id}" class="text-dark">${row.full_name}</a></h5>
+                                <span class="text-muted font-12"><i class="ti ti-id"></i> ${row.employee_code}</span><br>
+                                ${getCycleBadge(row.payment_cycle)}
+                            `;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            const pos = row.position ? row.position.name : '-';
+                            const dept = row.department ? row.department.name : '-';
+                            const branch = row.branch ? row.branch.name : '-';
+                            return `
+                                <div class="font-13 fw-semibold text-primary">${pos}</div>
+                                <div class="text-muted font-12">${dept}</div>
+                                <div class="text-muted font-12"><i class="ti ti-map-pin"></i> ${branch}</div>
+                            `;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            return getStatusBadge(row.status);
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            const join = moment(row.join_date).format('DD MMM YYYY');
+                            return `
+                                <div class="font-13">${join}</div>
+                                <small class="text-muted">${row.work_tenure_years} Tahun</small>
+                            `;
+                        }
+                    },
+                    {
+                        data: null,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return `
+                                <a href="/karyawan/edit/${row._id}" class="action-icon text-primary" title="Edit Data">
+                                    <i class="ti ti-edit"></i>
+                                </a>
+                                <a href="javascript:void(0);" class="action-icon text-danger ms-1 btn-delete" data-id="${row._id}" data-name="${row.full_name}" title="Nonaktifkan">
+                                    <i class="ti ti-trash"></i>
+                                </a>
+                            `;
+                        }
+                    }
+                ]
+            });
+
+            // Trigger search with delay (debounce)
+            let searchTimeout;
+            $('#searchInput').on('keyup', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    table.ajax.reload();
+                }, 500);
+            });
+
+            // Apply Filters
+            $('#btnApplyFilter').on('click', function() {
+                table.ajax.reload();
+            });
+
+            // Handle Nonaktifkan (Soft Delete via Update)
+            $('#employeeTable tbody').on('click', '.btn-delete', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+
+                Swal.fire({
+                    title: 'Nonaktifkan Karyawan?',
+                    html: `Anda yakin ingin menonaktifkan akun <b>${name}</b>?<br><small>Data tidak dihapus permanen, tapi tidak akan muncul lagi di daftar aktif.</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#8a969c',
+                    confirmButtonText: 'Ya, Nonaktifkan'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/api/v1/employees/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ is_active: false })
+                        })
+                        .then(res => res.json())
+                        .then(res => {
+                            if(res.success) {
+                                Swal.fire('Berhasil!', 'Karyawan telah dinonaktifkan.', 'success');
+                                table.ajax.reload();
+                            } else {
+                                Swal.fire('Gagal!', res.message, 'error');
+                            }
+                        })
+                        .catch(err => Swal.fire('Error', 'Terjadi kesalahan sistem', 'error'));
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>

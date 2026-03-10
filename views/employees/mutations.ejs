@@ -1,0 +1,144 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: title }) %>
+    <%- include('../partials/head-css') %>
+    <link href="/plugins/datatables/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="/plugins/datatables/responsive.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="content">
+                <div class="container-fluid">
+                    <%- include('../partials/page-title', { title: title, subtitle: subtitle }) %>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="header-title mb-3">Daftar Riwayat Mutasi</h4>
+                                    
+                                    <div class="table-responsive">
+                                        <table id="mutationsTable" class="table dt-responsive nowrap w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th>No. Mutasi</th>
+                                                    <th>Tgl Efektif</th>
+                                                    <th>Karyawan</th>
+                                                    <th>Jenis Mutasi</th>
+                                                    <th>Asal (Cabang/Dept/Jabatan)</th>
+                                                    <th>Tujuan (Cabang/Dept/Jabatan)</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if(histories && histories.length > 0) { %>
+                                                    <% histories.forEach(function(history) { %>
+                                                        <tr>
+                                                            <td><span class="fw-semibold"><%= history.mutation_number %></span></td>
+                                                            <td><%= moment(history.effective_date).format('DD MMM YYYY') %></td>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div>
+                                                                        <h5 class="m-0 font-14"><%= history.employee_id ? history.employee_id.full_name : 'N/A' %></h5>
+                                                                        <small class="text-muted"><%= history.employee_id ? history.employee_id.employee_code : '-' %></small>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <% if(history.mutation_type === 'branch_transfer') { %>
+                                                                    <span class="badge bg-soft-primary text-primary">Pindah Cabang</span>
+                                                                <% } else if(history.mutation_type === 'department_change') { %>
+                                                                    <span class="badge bg-soft-info text-info">Pindah Departemen</span>
+                                                                <% } else if(history.mutation_type === 'position_change') { %>
+                                                                    <span class="badge bg-soft-warning text-warning">Perubahan Jabatan</span>
+                                                                <% } else { %>
+                                                                    <span class="badge bg-soft-secondary text-secondary"><%= history.mutation_type %></span>
+                                                                <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <ul class="list-unstyled mb-0 font-13">
+                                                                    <li><i class="ti ti-map-pin me-1"></i> <%= history.from_branch_id ? history.from_branch_id.name : '-' %></li>
+                                                                    <li><i class="ti ti-building me-1"></i> <%= history.from_department_id ? history.from_department_id.name : '-' %></li>
+                                                                    <li><i class="ti ti-briefcase me-1"></i> <%= history.from_position_id ? history.from_position_id.name : '-' %></li>
+                                                                </ul>
+                                                            </td>
+                                                            <td>
+                                                                <ul class="list-unstyled mb-0 font-13">
+                                                                    <li><i class="ti ti-map-pin me-1 text-success"></i> <%= history.to_branch_id ? history.to_branch_id.name : '-' %></li>
+                                                                    <li><i class="ti ti-building me-1 text-success"></i> <%= history.to_department_id ? history.to_department_id.name : '-' %></li>
+                                                                    <li><i class="ti ti-briefcase me-1 text-success"></i> <%= history.to_position_id ? history.to_position_id.name : '-' %></li>
+                                                                </ul>
+                                                            </td>
+                                                            <td>
+                                                                <% if(history.status === 'approved') { %>
+                                                                    <span class="badge bg-success">Disetujui</span>
+                                                                <% } else if(history.status === 'pending') { %>
+                                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                                <% } else { %>
+                                                                    <span class="badge bg-danger">Ditolak</span>
+                                                                <% } %>
+                                                            </td>
+                                                        </tr>
+                                                    <% }); %>
+                                                <% } else { %>
+                                                    <tr>
+                                                        <td colspan="7" class="text-center py-4">
+                                                            <div class="text-muted">
+                                                                <i class="ti ti-inbox fs-4 mb-2 d-block"></i>
+                                                                <p class="mb-0">Belum ada riwayat mutasi karyawan ditemukan.</p>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+    <script src="/plugins/jquery/jquery.min.js"></script>
+    <script src="/plugins/datatables/dataTables.min.js"></script>
+    <script src="/plugins/datatables/dataTables.bootstrap5.min.js"></script>
+    <script src="/plugins/datatables/dataTables.responsive.min.js"></script>
+    <script src="/plugins/datatables/responsive.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            if($('#mutationsTable tbody tr td').length > 1) { // Prevents init on empty state row
+                $('#mutationsTable').DataTable({
+                    language: {
+                        paginate: {
+                            previous: "<i class='ti ti-chevron-left'>",
+                            next: "<i class='ti ti-chevron-right'>"
+                        },
+                        lengthMenu: "Tampilkan _MENU_ data per halaman",
+                        zeroRecords: "Data tidak ditemukan",
+                        info: "Menampilkan halaman _PAGE_ dari _PAGES_",
+                        infoEmpty: "Tidak ada data yang tersedia",
+                        infoFiltered: "(difilter dari _MAX_ total data)",
+                        search: "Cari:"
+                    },
+                    drawCallback: function() {
+                        $('.dataTables_paginate > .pagination').addClass('pagination-rounded');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

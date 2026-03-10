@@ -1,0 +1,1065 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: title }) %>
+    <%- include('../partials/head-css') %>
+    <link href="/plugins/datatables/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="/plugins/datatables/responsive.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <link href="/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        .profile-user-box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .profile-user-box img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #dee2e6;
+            margin-bottom: 15px;
+        }
+        .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+            background-color: #6658dd;
+            color: #fff;
+        }
+        .nav-pills .nav-link {
+            color: #6c757d;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 0.25rem;
+        }
+        .timeline {
+            border-left: 2px solid #eef2f7;
+            padding-left: 20px;
+            margin-top: 20px;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background-color: #6658dd;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #eef2f7;
+        }
+        .doc-card {
+            border: 1px solid #eef2f7;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .doc-card:hover {
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <%- include('../partials/page-title', { title: 'Profil Karyawan', subtitle: 'Karyawan / Detail' }) %>
+
+                <div class="row">
+                    <!-- Lembar Navigasi Kiri (Profile Singkat & Tabs) -->
+                    <div class="col-xl-3 col-lg-4">
+                        <div class="profile-user-box">
+                            <div class="position-relative d-inline-block">
+                                <img src="<%= employee.photo_url || '/images/users/user-1.jpg' %>" alt="user-profile" class="rounded-circle avatar-lg" id="profileImage">
+                                <% if(employee.is_active) { %>
+                                <div class="position-absolute bottom-0 end-0" style="margin-bottom: 20px; margin-right: 5px;">
+                                    <label for="uploadPhotoInput" class="btn btn-sm btn-icon btn-primary rounded-circle shadow" title="Ganti Foto" style="cursor: pointer; padding: 4px 6px;">
+                                        <i class="ti ti-camera"></i>
+                                    </label>
+                                    <input type="file" id="uploadPhotoInput" class="d-none" accept="image/jpeg, image/png, image/jpg">
+                                </div>
+                                <% } %>
+                            </div>
+                            <h4 class="mt-1 mb-1 font-18"><%= employee.full_name %></h4>
+                            <p class="font-13 text-muted mb-2"><%= employee.position ? employee.position.name : '-' %> | <%= employee.branch ? employee.branch.name : '-' %></p>
+                            
+                            <% if(employee.status === 'KT') { %>
+                                <span class="badge bg-primary px-2 py-1 fs-6">Tetap (KT)</span>
+                            <% } else if(employee.status === 'KL') { %>
+                                <span class="badge bg-success px-2 py-1 fs-6">Kontrak (KL)</span>
+                            <% } else { %>
+                                <span class="badge bg-warning text-dark px-2 py-1 fs-6">Magang</span>
+                            <% } %>
+
+                            <hr class="my-3">
+
+                            <div class="text-start mt-3">
+                                <p class="text-muted mb-2 font-13"><strong>ID Karyawan:</strong> <span class="ms-2"><%= employee.employee_code %></span></p>
+                                <p class="text-muted mb-2 font-13"><strong>Bergabung:</strong> <span class="ms-2"><%= moment(employee.join_date).format('DD MMM YYYY') %></span></p>
+                                <p class="text-muted mb-2 font-13"><strong>Masa Kerja:</strong> <span class="ms-2"><%= employee.work_tenure_years %> Tahun</span></p>
+                            </div>
+
+                            <% if(employee.qr_code_url) { %>
+                                <div class="mt-3 text-center">
+                                    <p class="text-muted font-12 mb-1">QR Code Absensi</p>
+                                    <a href="<%= employee.qr_code_url %>" download="<%= employee.employee_code %>_QRCode.png" target="_blank">
+                                        <img src="<%= employee.qr_code_url %>" alt="QR Code" style="width: 100px; height: 100px; border-radius: 4px;">
+                                    </a>
+                                </div>
+                            <% } %>
+                                <% if(employee.is_active) { %>
+                                    <div class="dropdown mt-3">
+                                        <button class="btn btn-primary dropdown-toggle w-100" type="button" id="actionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Aksi Karyawan <i class="mdi mdi-chevron-down ms-1"></i>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" aria-labelledby="actionDropdown">
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#mutationModal"><i class="ti ti-exchange text-warning me-2"></i> Mutasi / Pindah Cabang</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#offboardingModal"><i class="ti ti-user-x me-2"></i> Offboarding (Resign)</a></li>
+                                        </ul>
+                                    </div>
+                                <% } else { %>
+                                    <div class="mt-3 text-center">
+                                        <div class="badge bg-danger fs-5 w-100 py-2">
+                                            <i class="ti ti-user-off me-1"></i> NONAKTIF
+                                        </div>
+                                        <p class="text-danger fw-bold mt-2 mb-0"><%= moment(employee.resign_date).format('DD MMM YYYY') %></p>
+                                        <small class="text-muted"><%= employee.resign_reason %></small>
+                                    </div>
+                                <% } %>
+                        </div>
+
+                        <!-- Sidebar Nav Tabs -->
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                                    <a class="nav-link active rounded-0 p-3 border-bottom" id="v-pills-profile-tab" data-bs-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="true">
+                                        <i class="ti ti-user me-2 font-16 align-middle"></i> Biodata Profil
+                                    </a>
+                                    <a class="nav-link rounded-0 p-3 border-bottom" id="v-pills-docs-tab" data-bs-toggle="pill" href="#v-pills-docs" role="tab" aria-controls="v-pills-docs" aria-selected="false">
+                                        <i class="ti ti-folder me-2 font-16 align-middle"></i> Berkas Dokumen
+                                    </a>
+                                    <a class="nav-link rounded-0 p-3 border-bottom" id="v-pills-salary-tab" data-bs-toggle="pill" href="#v-pills-salary" role="tab" aria-controls="v-pills-salary" aria-selected="false">
+                                        <i class="ti ti-wallet me-2 font-16 align-middle"></i> Konfigurasi Gaji
+                                    </a>
+                                    <a class="nav-link rounded-0 p-3 border-bottom" id="v-pills-attendance-tab" data-bs-toggle="pill" href="#v-pills-attendance" role="tab" aria-controls="v-pills-attendance" aria-selected="false">
+                                        <i class="ti ti-calendar me-2 font-16 align-middle"></i> Riwayat Absensi
+                                    </a>
+                                    <a class="nav-link rounded-0 p-3" id="v-pills-receivable-tab" data-bs-toggle="pill" href="#v-pills-receivable" role="tab" aria-controls="v-pills-receivable" aria-selected="false">
+                                        <i class="ti ti-receipt me-2 font-16 align-middle"></i> Rekap Piutang
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Konten Tab (Kanan) -->
+                    <div class="col-xl-9 col-lg-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="tab-content" id="v-pills-tabContent">
+                                    
+                                    <!-- TAB 1: PROFIL -->
+                                    <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
+                                        <h4 class="header-title mb-3">Informasi Pribadi</h4>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-id"></i> NIK KTP</p>
+                                                <h5 class="font-14 mt-0"><%= employee.nik %></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-calendar-event"></i> Tempat, Tanggal Lahir</p>
+                                                <h5 class="font-14 mt-0"><%= employee.birth_place || '-' %>, <%= employee.birth_date ? moment(employee.birth_date).format('DD MMM YYYY') : '-' %> (<%= employee.age_years %> Thn)</h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-users"></i> Jenis Kelamin & Agama</p>
+                                                <h5 class="font-14 mt-0">
+                                                    <%= employee.gender === 'L' ? 'Laki-Laki' : 'Perempuan' %> / 
+                                                    <%= employee.religion || '-' %>
+                                                </h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-heart"></i> Status Perkawinan</p>
+                                                <h5 class="font-14 mt-0"><%= employee.marital_status || '-' %></h5>
+                                            </div>
+                                            <div class="col-md-12 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-map-pin"></i> Alamat Lengkap</p>
+                                                <h5 class="font-14 mt-0"><%= employee.current_address ? `${employee.current_address}, ${employee.current_city}, ${employee.current_province}` : '-' %></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-phone"></i> No. Handphone</p>
+                                                <h5 class="font-14 mt-0"><%= employee.phone || '-' %></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-mail"></i> Email</p>
+                                                <h5 class="font-14 mt-0"><%= employee.email || '-' %></h5>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+                                        
+                                        <h4 class="header-title mb-3">Informasi Kepegawaian</h4>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-building-store"></i> Cabang & Departemen</p>
+                                                <h5 class="font-14 mt-0"><%= employee.branch ? employee.branch.name : '-' %> - <%= employee.department ? employee.department.name : '-' %></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-briefcase"></i> Jabatan</p>
+                                                <h5 class="font-14 mt-0"><%= employee.position ? employee.position.name : '-' %></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-file-certificate"></i> Siklus Gaji</p>
+                                                <h5 class="font-14 mt-0"><span class="badge bg-soft-info text-info"><%= employee.payment_cycle === 'monthly' ? 'Bulanan' : (employee.payment_cycle === 'weekly' ? 'Mingguan' : 'Harian') %></span></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <p class="text-muted mb-1"><i class="ti ti-certificate"></i> Masa Percobaan (Probation)</p>
+                                                <h5 class="font-14 mt-0">
+                                                    <%= employee.probation_end_date ? `Sampai ${moment(employee.probation_end_date).format('DD MMM YYYY')}` : '-' %>
+                                                </h5>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3 border-end">
+                                                <h4 class="header-title mb-3">Informasi Bank</h4>
+                                                <p class="text-muted mb-1">Nama Bank</p>
+                                                <h5 class="font-14 mt-0"><%= employee.bank_name || '-' %></h5>
+                                                
+                                                <p class="text-muted mb-1 mt-2">Nomor Rekening</p>
+                                                <h5 class="font-14 mt-0"><%= employee.bank_account_number ? employee.bank_account_number.replace(/.(?=.{4})/g, 'x') : '-' %></h5> <!-- Masked account -->
+                                                
+                                                <p class="text-muted mb-1 mt-2">Nama Pemilik Rekening</p>
+                                                <h5 class="font-14 mt-0"><%= employee.bank_account_holder || '-' %></h5>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <h4 class="header-title mb-3">Kontak Darurat</h4>
+                                                <p class="text-muted mb-1">Nama Kontak</p>
+                                                <h5 class="font-14 mt-0"><%= employee.emergency_contact_name || '-' %></h5>
+                                                
+                                                <p class="text-muted mb-1 mt-2">Hubungan</p>
+                                                <h5 class="font-14 mt-0"><%= employee.emergency_contact_relation || '-' %></h5>
+                                                
+                                                <p class="text-muted mb-1 mt-2">No. Handphone</p>
+                                                <h5 class="font-14 mt-0"><%= employee.emergency_contact_phone || '-' %></h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 2: DOKUMEN -->
+                                    <div class="tab-pane fade" id="v-pills-docs" role="tabpanel" aria-labelledby="v-pills-docs-tab">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <h4 class="header-title mb-0">Berkas Dokumen</h4>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadDocModal">
+                                                <i class="ti ti-upload me-1"></i> Unggah Dokumen
+                                            </button>
+                                        </div>
+
+                                        <div class="row" id="docGrid">
+                                            <% if(documents.length === 0) { %>
+                                                <div class="col-12 text-center py-5">
+                                                    <i class="ti ti-files text-muted" style="font-size: 48px;"></i>
+                                                    <h5 class="mt-3 text-muted">Belum ada dokumen yang diunggah</h5>
+                                                </div>
+                                            <% } else { %>
+                                                <% documents.forEach(doc => { %>
+                                                    <div class="col-md-6 col-xl-4 mb-3">
+                                                        <div class="card doc-card p-2 h-100">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="avatar-sm me-3">
+                                                                    <span class="avatar-title bg-soft-primary text-primary rounded">
+                                                                        <% if(doc.file_type === 'pdf') { %>
+                                                                            <i class="ti ti-file-text font-20"></i>
+                                                                        <% } else if(doc.file_type === 'jpg' || doc.file_type === 'png' || doc.file_type === 'jpeg') { %>
+                                                                            <i class="ti ti-photo font-20"></i>
+                                                                        <% } else { %>
+                                                                            <i class="ti ti-file font-20"></i>
+                                                                        <% } %>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="flex-grow-1 overflow-hidden">
+                                                                    <h5 class="font-14 mt-0 mb-1 text-truncate"><a href="javascript:void(0);" class="text-dark"><%= doc.doc_name %></a></h5>
+                                                                    <p class="text-muted font-12 mb-0"><%= doc.doc_type.toUpperCase() %> • <%= moment(doc.uploaded_at).format('DD MMM YYYY') %></p>
+                                                                </div>
+                                                                <div class="dropdown">
+                                                                    <a href="#" class="dropdown-toggle text-muted font-18" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                        <i class="ti ti-dots-vertical"></i>
+                                                                    </a>
+                                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                                        <a href="<%= doc.file_url %>" target="_blank" class="dropdown-item"><i class="ti ti-eye me-1"></i> Lihat Berkas</a>
+                                                                        <a href="<%= doc.file_url %>" download class="dropdown-item"><i class="ti ti-download me-1"></i> Unduh</a>
+                                                                        <div class="dropdown-divider"></div>
+                                                                        <a href="javascript:void(0);" class="dropdown-item text-danger btn-delete-doc" data-id="<%= doc._id %>"><i class="ti ti-trash me-1"></i> Hapus</a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <% }) %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 3: GAJI -->
+                                    <div class="tab-pane fade" id="v-pills-salary" role="tabpanel" aria-labelledby="v-pills-salary-tab">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <h4 class="header-title mb-0">Konfigurasi Gaji Saat Ini</h4>
+                                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#updateSalaryModal">
+                                                <i class="ti ti-edit me-1"></i> Perbarui Gaji
+                                            </button>
+                                        </div>
+
+                                        <% if(currentSalary) { %>
+                                            <div class="table-responsive mb-4">
+                                                <table class="table table-bordered table-sm mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 40%">Komponen</th>
+                                                            <th style="width: 30%">Nominal (Rp)</th>
+                                                            <th style="width: 30%">Catatan / Keterangan</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr><td>1. Gaji Pokok</td><td class="text-end fw-bold"><%= currentSalary.base_salary.toLocaleString('id-ID') %></td><td>-</td></tr>
+                                                        <tr><td>2. Tunjangan Lama Kerja</td><td class="text-end"><%= currentSalary.tenure_allowance.toLocaleString('id-ID') %></td><td>-</td></tr>
+                                                        <tr><td>3. Tunjangan Jabatan</td><td class="text-end"><%= currentSalary.position_allowance.toLocaleString('id-ID') %></td><td>-</td></tr>
+                                                        <tr><td>4. Tunjangan Kinerja</td><td class="text-end"><%= currentSalary.performance_allowance.toLocaleString('id-ID') %></td><td>-</td></tr>
+                                                        <tr class="table-light"><th colspan="3">Pendapatan Variabel</th></tr>
+                                                        <tr><td>5. Tarif Harian (jika dihit/hari)</td><td class="text-end"><%= currentSalary.daily_rate.toLocaleString('id-ID') %> / hari</td><td>-</td></tr>
+                                                        <tr><td>6. Uang Makan / Kehadiran</td><td class="text-end"><%= currentSalary.meal_allowance.toLocaleString('id-ID') %> / hari</td><td>-</td></tr>
+                                                        <tr><td>7. Uang BBM / Transport</td><td class="text-end"><%= currentSalary.fuel_allowance.toLocaleString('id-ID') %></td><td>(Bulanan)</td></tr>
+                                                        <tr><td>8. Tarif Lembur Spesifik</td><td class="text-end"><%= currentSalary.overtime_rate_per_hour.toLocaleString('id-ID') %> / jam</td><td>Override tarif cabang</td></tr>
+                                                        <tr><td>9. Bonus Tetap</td><td class="text-end"><%= currentSalary.bonus.toLocaleString('id-ID') %></td><td>-</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="alert alert-warning"><i class="ti ti-alert-triangle me-2"></i> Konfigurasi gaji belum diatur untuk karyawan ini.</div>
+                                        <% } %>
+
+                                        <h4 class="header-title mt-4 mb-3">Timeline Riwayat Perubahan Gaji</h4>
+                                        <div class="timeline">
+                                            <% salaryConfigs.forEach(conf => { %>
+                                                <div class="timeline-item">
+                                                    <h5 class="mt-0 mb-1"><%= moment(conf.effective_date).format('DD MMM YYYY HH:mm') %></h5>
+                                                    <p class="text-muted font-13 mb-1">
+                                                        Oleh: <b><%= conf.created_by ? conf.created_by.name : 'Sistem' %></b>
+                                                        <% if(conf.is_current) { %>
+                                                            <span class="badge bg-success ms-2">Aktif Sekarang</span>
+                                                        <% } else { %>
+                                                            <span class="badge bg-secondary ms-2">Selesai: <%= moment(conf.end_date).format('DD MMM YYYY') %></span>
+                                                        <% } %>
+                                                    </p>
+                                                    <p class="text-dark font-14 mb-0">Catatan: <%= conf.notes || 'Tidak ada catatan pembaruan' %></p>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 4: ABSENSI -->
+                                    <div class="tab-pane fade" id="v-pills-attendance" role="tabpanel" aria-labelledby="v-pills-attendance-tab">
+                                        <h4 class="header-title mb-4">Rekap & Riwayat Absensi (30 Hari Terakhir)</h4>
+                                        
+                                        <!-- Mini Rekap Placeholder -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-3">
+                                                <div class="card bg-soft-success border-success border">
+                                                    <div class="card-body p-2 text-center">
+                                                        <h4 class="text-success m-0"><%= attendances.filter(a => a.status === 'present' || a.status === 'late').length %></h4>
+                                                        <span class="font-12">Hadir/Telat</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card bg-soft-info border-info border">
+                                                    <div class="card-body p-2 text-center">
+                                                        <h4 class="text-info m-0"><%= attendances.filter(a => a.status === 'leave').length %></h4>
+                                                        <span class="font-12">Izin/Cuti</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card bg-soft-warning border-warning border">
+                                                    <div class="card-body p-2 text-center">
+                                                        <h4 class="text-warning m-0"><%= attendances.filter(a => a.status === 'sick').length %></h4>
+                                                        <span class="font-12">Sakit</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card bg-soft-danger border-danger border">
+                                                    <div class="card-body p-2 text-center">
+                                                        <h4 class="text-danger m-0"><%= attendances.filter(a => a.status === 'absent').length %></h4>
+                                                        <span class="font-12">Alpa (Tanpa Keterangan)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <table class="table table-sm table-centered table-nowrap mb-0 w-100" id="attendanceTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Tanggal</th>
+                                                    <th>Check In</th>
+                                                    <th>Check Out</th>
+                                                    <th>Durasi</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if(attendances.length === 0) { %>
+                                                    <tr><td colspan="5" class="text-center">Belum ada riwayat absensi.</td></tr>
+                                                <% } else { %>
+                                                    <% attendances.forEach(att => { %>
+                                                        <tr>
+                                                            <td><%= moment(att.attendance_date).format('DD MMM YYYY') %></td>
+                                                            <td><%= att.check_in_time ? moment(att.check_in_time).format('HH:mm') : '-' %></td>
+                                                            <td><%= att.check_out_time ? moment(att.check_out_time).format('HH:mm') : '-' %></td>
+                                                            <td><%= att.work_duration_minutes ? (att.work_duration_minutes / 60).toFixed(1) + ' Jam' : '-' %></td>
+                                                            <td>
+                                                                <% if(att.status === 'present') { %><span class="badge bg-success">Hadir</span><% } %>
+                                                                <% if(att.status === 'late') { %><span class="badge bg-warning">Terlambat</span><% } %>
+                                                                <% if(att.status === 'leave') { %><span class="badge bg-info">Izin</span><% } %>
+                                                                <% if(att.status === 'sick') { %><span class="badge bg-warning text-dark">Sakit</span><% } %>
+                                                                <% if(att.status === 'absent') { %><span class="badge bg-danger">Alpa</span><% } %>
+                                                            </td>
+                                                        </tr>
+                                                    <% }) %>
+                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- TAB 5: PIUTANG -->
+                                    <div class="tab-pane fade" id="v-pills-receivable" role="tabpanel" aria-labelledby="v-pills-receivable-tab">
+                                        <h4 class="header-title mb-4">Summary & Riwayat Piutang Karyawan</h4>
+                                        
+                                        <div class="row text-center mb-4">
+                                            <div class="col-md-4">
+                                                <div class="p-3 border rounded">
+                                                    <p class="text-muted font-13 mb-1">Total Pinjaman</p>
+                                                    <h4 class="text-primary m-0">Rp <%= receivableSummary.totalReceivable.toLocaleString('id-ID') %></h4>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="p-3 border rounded">
+                                                    <p class="text-muted font-13 mb-1">Sudah Dibayar</p>
+                                                    <h4 class="text-success m-0">Rp <%= receivableSummary.totalPaid.toLocaleString('id-ID') %></h4>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="p-3 border rounded bg-soft-danger">
+                                                    <p class="text-danger font-13 mb-1">Sisa Piutang</p>
+                                                    <h4 class="text-danger m-0">Rp <%= receivableSummary.totalRemaining.toLocaleString('id-ID') %></h4>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <table class="table table-sm table-centered table-nowrap mb-0 w-100" id="receivableTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>No. Piutang</th>
+                                                    <th>Tgl Pengajuan</th>
+                                                    <th>Total Hutang</th>
+                                                    <th>Cicilan/Bulan</th>
+                                                    <th>Sisa</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if(receivables.length === 0) { %>
+                                                    <tr><td colspan="6" class="text-center">Tidak ada catatan piutang.</td></tr>
+                                                <% } else { %>
+                                                    <% receivables.forEach(rec => { %>
+                                                        <tr>
+                                                            <td><a href="#"><b><%= rec.receivable_number %></b></a></td>
+                                                            <td><%= moment(rec.request_date).format('DD MMM YYYY') %></td>
+                                                            <td>Rp <%= rec.amount.toLocaleString('id-ID') %></td>
+                                                            <td>Rp <%= rec.installment_amount.toLocaleString('id-ID') %> (<%= rec.tenor_months %>x)</td>
+                                                            <td class="text-danger fw-bold">Rp <%= rec.remaining_amount.toLocaleString('id-ID') %></td>
+                                                            <td>
+                                                                <% if(rec.status === 'draft') { %><span class="badge bg-secondary">Draft</span><% } %>
+                                                                <% if(rec.status === 'active') { %><span class="badge bg-primary">Aktif</span><% } %>
+                                                                <% if(rec.status === 'paid') { %><span class="badge bg-success">Lunas</span><% } %>
+                                                            </td>
+                                                        </tr>
+                                                    <% }) %>
+                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload Dokumen -->
+    <%- include('mutation-form') %>
+    <%- include('offboarding') %>
+    <div class="modal fade" id="uploadDocModal" tabindex="-1" aria-labelledby="uploadDocModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="uploadDocForm" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadDocModalLabel">Unggah Dokumen Baru</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipe Dokumen <span class="text-danger">*</span></label>
+                            <select class="form-select" name="doc_type" required>
+                                <option value="">-- Pilih Tipe --</option>
+                                <option value="ktp">KTP</option>
+                                <option value="kk">Kartu Keluarga</option>
+                                <option value="npwp">NPWP</option>
+                                <option value="ijazah">Ijazah</option>
+                                <option value="skck">SKCK</option>
+                                <option value="cv">Curriculum Vitae</option>
+                                <option value="foto">Foto Formal</option>
+                                <option value="bpjs_kes">BPJS Kesehatan</option>
+                                <option value="bpjs_tk">BPJS Ketenagakerjaan</option>
+                                <option value="kontrak">Kontrak Kerja</option>
+                                <option value="sertifikat">Sertifikat</option>
+                                <option value="other">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama/Label Dokumen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="doc_name" placeholder="Misal: KTP Karyawan" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Pilih File <span class="text-danger">*</span> (Max 5MB)</label>
+                            <input type="file" class="form-control" id="doc_file" name="file" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Catatan Tambahan (Opsi)</label>
+                            <textarea class="form-control" name="notes" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="btnUploadDoc">Unggah & Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Update Gaji -->
+    <div class="modal fade" id="updateSalaryModal" tabindex="-1" aria-labelledby="updateSalaryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="updateSalaryForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateSalaryModalLabel">Perbarui Konfigurasi Gaji</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="ti ti-info-circle me-1"></i> Menyimpan perubahan akan mencatat histori riwayat gaji baru dan menonaktifkan konfigurasi sebelumnya.
+                        </div>
+                        
+                        <% let formSal = currentSalary || { base_salary:0, tenure_allowance:0, position_allowance:0, performance_allowance:0, daily_rate:0, meal_allowance:0, fuel_allowance:0, overtime_rate_per_hour:0, bonus:0 } %>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gaji Pokok</label>
+                                <input type="number" class="form-control" name="base_salary" value="<%= formSal.base_salary %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tunjangan Lama Kerja</label>
+                                <input type="number" class="form-control" name="tenure_allowance" value="<%= formSal.tenure_allowance %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tunjangan Jabatan</label>
+                                <input type="number" class="form-control" name="position_allowance" value="<%= formSal.position_allowance %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tunjangan Kinerja</label>
+                                <input type="number" class="form-control" name="performance_allowance" value="<%= formSal.performance_allowance %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tarif Harian</label>
+                                <input type="number" class="form-control" name="daily_rate" value="<%= formSal.daily_rate %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Uang Makan / Kehadiran</label>
+                                <input type="number" class="form-control" name="meal_allowance" value="<%= formSal.meal_allowance %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Uang Transport / BBM</label>
+                                <input type="number" class="form-control" name="fuel_allowance" value="<%= formSal.fuel_allowance %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tarif Lembur (Override)</label>
+                                <input type="number" class="form-control" name="overtime_rate_per_hour" value="<%= formSal.overtime_rate_per_hour %>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Bonus Tetap</label>
+                                <input type="number" class="form-control" name="bonus" value="<%= formSal.bonus %>">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Catatan Pembaruan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="notes" placeholder="Misal: Kenaikan gaji tahunan 2025" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="btnUpdateSalary">Simpan Konfigurasi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+    <script src="/plugins/jquery/jquery.min.js"></script>
+    <script src="/plugins/datatables/dataTables.min.js"></script>
+    <script src="/plugins/datatables/dataTables.bootstrap5.min.js"></script>
+    <script src="/plugins/datatables/dataTables.responsive.min.js"></script>
+    <script src="/plugins/datatables/responsive.bootstrap5.min.js"></script>
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="/plugins/moment/moment.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const employeeId = '<%= employee._id %>';
+
+            // Document Upload Handler
+            $('#uploadDocForm').on('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                $('#btnUploadDoc').prop('disabled', true).text('Mengunggah...');
+
+                fetch(`/api/v1/employees/${employeeId}/documents`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(res => {
+                    $('#btnUploadDoc').prop('disabled', false).text('Unggah & Simpan');
+                    if(res.success) {
+                        $('#uploadDocModal').modal('hide');
+                        Swal.fire('Berhasil', 'Dokumen berhasil diunggah', 'success').then(() => {
+                            location.reload(); // Reload to show new doc in grid
+                        });
+                    } else {
+                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan sistem', 'error');
+                    }
+                })
+                .catch(err => {
+                    $('#btnUploadDoc').prop('disabled', false).text('Unggah & Simpan');
+                    Swal.fire('Error', 'Kesalahan jaringan', 'error');
+                });
+            });
+
+            // Delete Document Handler
+            $('.btn-delete-doc').on('click', function() {
+                const docId = $(this).data('id');
+                Swal.fire({
+                    title: 'Hapus Dokumen?',
+                    text: 'Dokumen ini akan dihapus permanen dari sistem.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#8a969c',
+                    confirmButtonText: 'Ya, Hapus'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/api/v1/employees/documents/${docId}`, { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(res => {
+                            if(res.success) {
+                                Swal.fire('Terhapus', 'Dokumen berhasil dihapus', 'success').then(() => location.reload());
+                            } else {
+                                Swal.fire('Gagal', res.message, 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Salary Config Update Handler
+            $('#updateSalaryForm').on('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                $('#btnUpdateSalary').prop('disabled', true).text('Menyimpan...');
+
+                fetch(`/api/v1/employees/${employeeId}/salary-config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(res => {
+                    $('#btnUpdateSalary').prop('disabled', false).text('Simpan Konfigurasi');
+                    if(res.success) {
+                        $('#updateSalaryModal').modal('hide');
+                        Swal.fire('Berhasil', 'Konfigurasi gaji baru berhasil diterapkan', 'success').then(() => {
+                            location.reload(); // Reload to refresh timeline and current values
+                        });
+                    } else {
+                        Swal.fire('Gagal', res.message || 'Error', 'error');
+                    }
+                });
+            });
+
+            // Init simple DataTables for Attendance and Receivable if needed (client side since it's already generated)
+            if($('#attendanceTable tbody tr').length > 0 && !$('#attendanceTable tbody tr td').hasClass('text-center')) {
+               $('#attendanceTable').DataTable({ responsive: true, pageLength: 10, lengthChange: false, searching: false, info: false });
+            }
+            if($('#receivableTable tbody tr').length > 0 && !$('#receivableTable tbody tr td').hasClass('text-center')) {
+               $('#receivableTable').DataTable({ responsive: true, pageLength: 5, lengthChange: false, searching: false, info: false });
+            }
+
+            // ==========================================
+            // JS Logic for Mutation & Offboarding
+            // ==========================================
+            const baseUrl = '/api/v1/employees/' + employeeId;
+
+            // --- UPLOAD FOTO PROFIL ---
+            $('#uploadPhotoInput').on('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire('Error', 'Ukuran gambar maksimal 5MB.', 'error');
+                    this.value = '';
+                    return;
+                }
+
+                const fd = new FormData();
+                fd.append('photo', file);
+
+                Swal.fire({
+                    title: 'Mengunggah Foto...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: '/api/v1/employees/<%= employee._id %>/photo',
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Foto profil telah diperbarui',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        }
+                    },
+                    error: function(xhr) {
+                        let msg = 'Gagal mengunggah foto.';
+                        if(xhr.responseJSON && xhr.responseJSON.error) msg = xhr.responseJSON.error.message;
+                        Swal.fire('Error', msg, 'error');
+                        $('#uploadPhotoInput').val('');
+                    }
+                });
+            });
+
+            // --- MUTASI ---
+            <% if(employee.is_active) { %>
+            // Load Branches for Mutation
+            $('#mutationModal').on('show.bs.modal', function () {
+                if($('#mut_branch_id option').length <= 1) { // Load only once
+                    $.ajax({
+                        url: '/api/v1/branches',
+                        type: 'GET',
+                        success: function(res) {
+                            if(res.success && res.data) {
+                                res.data.forEach(b => {
+                                    if(b._id !== '<%= employee.branch_id ? employee.branch_id._id : "" %>') {
+                                        $('#mut_branch_id').append(new Option(b.name, b._id));
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Cascade Branch -> Department
+            $('#mut_branch_id').on('change', function() {
+                const branchId = $(this).val();
+                $('#mut_department_id').html('<option value="">--- Pilih Departemen ---</option>').prop('disabled', true);
+                $('#mut_position_id').html('<option value="">--- Pilih Jabatan ---</option>').prop('disabled', true);
+                if(!branchId) return;
+
+                $.ajax({
+                    url: `/api/v1/departments?branch_id=${branchId}`,
+                    type: 'GET',
+                    success: function(res) {
+                        if(res.success && res.data) {
+                            $('#mut_department_id').prop('disabled', false);
+                            res.data.forEach(d => {
+                                const sel = (d._id === '<%= employee.department_id ? employee.department_id._id : "" %>') ? true : false;
+                                $('#mut_department_id').append(new Option(d.name, d._id, sel, sel));
+                            });
+                            $('#mut_department_id').trigger('change');
+                        }
+                    }
+                });
+            });
+
+            // Cascade Department -> Position
+            $('#mut_department_id').on('change', function() {
+                const deptId = $(this).val();
+                $('#mut_position_id').html('<option value="">--- Pilih Jabatan ---</option>').prop('disabled', true);
+                if(!deptId) return;
+
+                $.ajax({
+                    url: `/api/v1/positions?department_id=${deptId}`,
+                    type: 'GET',
+                    success: function(res) {
+                        if(res.success && res.data) {
+                            $('#mut_position_id').prop('disabled', false);
+                            res.data.forEach(p => {
+                                const sel = (p._id === '<%= employee.position_id ? employee.position_id._id : "" %>') ? true : false;
+                                $('#mut_position_id').append(new Option(p.name, p._id, sel, sel));
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Submit Mutation
+            $('#formMutation').on('submit', function(e) {
+                e.preventDefault();
+                const btn = $('#btnSubmitMutation');
+                const spinner = btn.find('.spinner-border');
+                
+                btn.prop('disabled', true);
+                spinner.removeClass('d-none');
+
+                const formData = {
+                    to_branch_id: $('#mut_branch_id').val(),
+                    to_department_id: $('#mut_department_id').val(),
+                    to_position_id: $('#mut_position_id').val(),
+                    effective_date: $('#mut_effective_date').val(),
+                    reason: $('#mut_reason').val()
+                };
+
+                $.ajax({
+                    url: baseUrl + '/mutate',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(res) {
+                        if(res.success) {
+                            $('#mutationModal').modal('hide');
+                            Swal.fire('Berhasil!', 'Mutasi berhasil diproses. Memuat ulang data...', 'success')
+                            .then(() => location.reload());
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false);
+                        spinner.addClass('d-none');
+                        let msg = 'Gagal memproses mutasi.';
+                        if(xhr.responseJSON && xhr.responseJSON.error) msg = xhr.responseJSON.error.message;
+                        Swal.fire('Error', msg, 'error');
+                    }
+                });
+            });
+
+            // --- OFFBOARDING ---
+            let offboardPayload = {};
+
+            $('#formInitOffboard').on('submit', function(e) {
+                e.preventDefault();
+                const btn = $('#btnInitOffboard');
+                
+                offboardPayload = {
+                    last_working_date: $('#offboard_lwd').val(),
+                    resign_date: $('#offboard_resign_date').val(),
+                    resign_reason: $('#offboard_reason').val()
+                };
+
+                btn.prop('disabled', true).html('<i class="mdi mdi-spin mdi-loading"></i> Memeriksa...');
+
+                $.ajax({
+                    url: baseUrl + '/offboard',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(offboardPayload),
+                    success: function(res) {
+                        if(res.success) {
+                            // Ready to finalize (No Debt)
+                            $('#summary_date').text(moment(offboardPayload.resign_date).format('DD MMM YYYY'));
+                            $('#summary_reason').text(offboardPayload.resign_reason);
+                            
+                            $('#step1-indicator').removeClass('bg-danger text-white').addClass('bg-light text-muted');
+                            $('#step1-text').removeClass('text-danger').addClass('text-muted');
+                            $('#step3-indicator').removeClass('bg-light text-muted').addClass('bg-danger text-white');
+                            $('#step3-text').removeClass('text-muted').addClass('text-danger');
+                            
+                            $('#offboard-step-1').addClass('d-none');
+                            $('#offboard-step-3').removeClass('d-none');
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html('Lanjut <i class="ti ti-arrow-right ms-1"></i>');
+                        if(xhr.status === 409 && xhr.responseJSON && xhr.responseJSON.error.code === 'ACTIVE_RECEIVABLE_EXISTS') {
+                            // Debt Found, proceed to Step 2
+                            const debtData = xhr.responseJSON.error.data;
+                            $('#offboard_debt_amount').text('Rp ' + debtData.total_remaining.toLocaleString('id-ID'));
+                            
+                            $('#step1-indicator').removeClass('bg-danger text-white').addClass('bg-light text-muted');
+                            $('#step1-text').removeClass('text-danger').addClass('text-muted');
+                            $('#step2-indicator').removeClass('bg-light text-muted').addClass('bg-danger text-white');
+                            $('#step2-text').removeClass('text-muted').addClass('text-danger');
+                            
+                            $('#offboard-step-1').addClass('d-none');
+                            $('#offboard-step-2').removeClass('d-none');
+                        } else {
+                            let msg = 'Gagal memproses.';
+                            if(xhr.responseJSON && xhr.responseJSON.error) msg = xhr.responseJSON.error.message;
+                            Swal.fire('Error', msg, 'error');
+                        }
+                    }
+                });
+            });
+
+            $('#btnBackToStep1').on('click', function() {
+                $('#step2-indicator').removeClass('bg-danger text-white').addClass('bg-light text-muted');
+                $('#step2-text').removeClass('text-danger').addClass('text-muted');
+                $('#step1-indicator').removeClass('bg-light text-muted').addClass('bg-danger text-white');
+                $('#step1-text').removeClass('text-muted').addClass('text-danger');
+                
+                $('#offboard-step-2').addClass('d-none');
+                $('#offboard-step-1').removeClass('d-none');
+            });
+
+            $('#formResolveDebt').on('submit', function(e) {
+                e.preventDefault();
+                const btn = $('#btnResolveDebt');
+                const resolution = $('input[name="resolution_method"]:checked').val();
+                
+                btn.prop('disabled', true).html('<i class="mdi mdi-spin mdi-loading"></i> Menyimpan...');
+
+                $.ajax({
+                    url: baseUrl + '/offboard/resolve-receivable',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ resolution_method: resolution }),
+                    success: function(res) {
+                        if(res.success) {
+                            $('#summary_date').text(moment(offboardPayload.resign_date).format('DD MMM YYYY'));
+                            $('#summary_reason').text(offboardPayload.resign_reason);
+                            $('#summary_finance').text(resolution === 'salary_deduction' ? 'POTONG GAJI (PRORATA)' : 'PELUNASAN LANGSUNG (DILUAR SISTEM)');
+                            
+                            $('#step2-indicator').removeClass('bg-danger text-white').addClass('bg-light text-muted');
+                            $('#step2-text').removeClass('text-danger').addClass('text-muted');
+                            $('#step3-indicator').removeClass('bg-light text-muted').addClass('bg-danger text-white');
+                            $('#step3-text').removeClass('text-muted').addClass('text-danger');
+                            
+                            $('#offboard-step-2').addClass('d-none');
+                            $('#offboard-step-3').removeClass('d-none');
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html('Konfirmasi Resolusi & Lanjut <i class="ti ti-arrow-right ms-1"></i>');
+                        let msg = 'Gagal menyimpan pilihan.';
+                        if(xhr.responseJSON && xhr.responseJSON.error) msg = xhr.responseJSON.error.message;
+                        Swal.fire('Error', msg, 'error');
+                    }
+                });
+            });
+
+            $('#btnBackToStep2').on('click', function() {
+                if($('#summary_finance').text() === 'CLEAR') {
+                    $('#step3-indicator').removeClass('bg-danger text-white').addClass('bg-light text-muted');
+                    $('#step3-text').removeClass('text-danger').addClass('text-muted');
+                    $('#step1-indicator').removeClass('bg-light text-muted').addClass('bg-danger text-white');
+                    $('#step1-text').removeClass('text-muted').addClass('text-danger');
+                    
+                    $('#offboard-step-3').addClass('d-none');
+                    $('#offboard-step-1').removeClass('d-none');
+                } else {
+                    $('#step3-indicator').removeClass('bg-danger text-white').addClass('bg-light text-muted');
+                    $('#step3-text').removeClass('text-danger').addClass('text-muted');
+                    $('#step2-indicator').removeClass('bg-light text-muted').addClass('bg-danger text-white');
+                    $('#step2-text').removeClass('text-muted').addClass('text-danger');
+                    
+                    $('#offboard-step-3').addClass('d-none');
+                    $('#offboard-step-2').removeClass('d-none');
+                    $('#btnResolveDebt').prop('disabled', false).html('Konfirmasi Resolusi & Lanjut <i class="ti ti-arrow-right ms-1"></i>');
+                }
+            });
+
+            $('#btnFinalizeOffboard').on('click', function() {
+                Swal.fire({
+                    title: 'Konfirmasi Final!',
+                    html: `Ketik <b>NONAKTIFKAN</b> di bawah ini untuk mengonfirmasi pemberhentian karyawan.`,
+                    input: 'text',
+                    inputAttributes: {
+                        autocapitalize: 'off',
+                        autocomplete: 'off'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Proses Offboarding',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#d33',
+                    showLoaderOnConfirm: true,
+                    preConfirm: (inputValue) => {
+                        if (inputValue !== 'NONAKTIFKAN') {
+                            Swal.showValidationMessage('Teks konfirmasi tidak cocok!');
+                            return false;
+                        }
+                        
+                        return $.ajax({
+                            url: baseUrl + '/offboard/finalize',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(offboardPayload)
+                        }).catch(err => {
+                            let msg = 'Terjadi kesalahan sistem.';
+                            if(err.responseJSON && err.responseJSON.error) msg = err.responseJSON.error.message;
+                            Swal.showValidationMessage(`Request failed: ${msg}`);
+                        });
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#offboardingModal').modal('hide');
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: 'Karyawan telah dinonaktifkan dari sistem.',
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                });
+            });
+            <% } %>
+        });
+    </script>
+</body>
+</html>

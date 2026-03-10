@@ -1,0 +1,570 @@
+<%- include('../partials/html') %>
+
+<head>
+    <%- include('../partials/title-meta', { title: 'Tambah Karyawan' }) %>
+    <%- include('../partials/head-css') %>
+    <link href="/plugins/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        .nav-pills.wizard-nav {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .nav-pills.wizard-nav .nav-link {
+            color: #6c757d;
+            font-weight: 500;
+            border-radius: 6px;
+            padding: 12px 20px;
+            text-align: center;
+        }
+        .nav-pills.wizard-nav .nav-link.active {
+            background-color: #0c0822; /* Primary color */
+            color: #fff;
+        }
+        .nav-pills.wizard-nav .nav-link .step-num {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.2);
+            color: inherit;
+            margin-right: 8px;
+            text-align: center;
+        }
+        .nav-pills.wizard-nav .nav-link.active .step-num {
+            background-color: #fff;
+            color: #0c0822;
+        }
+        
+        .wizard-content {
+            padding: 24px 0;
+        }
+
+        .required-star:after {
+            content: '*';
+            color: red;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <%- include('../partials/menu') %>
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <%- include('../partials/page-title', { title: 'Tambah Karyawan Baru', subtitle: 'Karyawan' }) %>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+
+                                <ul class="nav nav-pills nav-justified wizard-nav mb-3" id="employeeWizard" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="step1-tab" data-bs-toggle="pill" data-bs-target="#step1" type="button" role="tab" disabled>
+                                            <span class="step-num">1</span> Data Pribadi
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="step2-tab" data-bs-toggle="pill" data-bs-target="#step2" type="button" role="tab" disabled>
+                                            <span class="step-num">2</span> Kepegawaian & Kontak
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="step3-tab" data-bs-toggle="pill" data-bs-target="#step3" type="button" role="tab" disabled>
+                                            <span class="step-num">3</span> Konfigurasi Gaji
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="step4-tab" data-bs-toggle="pill" data-bs-target="#step4" type="button" role="tab" disabled>
+                                            <span class="step-num">4</span> Review & Submit
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <form id="formCreateEmployee" class="needs-validation" novalidate>
+                                    <div class="tab-content" id="employeeWizardContent">
+                                        
+                                        <!-- STEP 1: DATA PRIBADI -->
+                                        <div class="tab-pane fade show active wizard-content" id="step1" role="tabpanel">
+                                            <h5 class="mb-3 text-uppercase bg-light p-2"><i class="ti ti-user-circle me-1"></i> Informasi Dasar</h5>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label required-star">Nama Lengkap</label>
+                                                    <input type="text" class="form-control" name="full_name" required>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label required-star">NIK (Nomor Induk Kependudukan)</label>
+                                                    <input type="text" class="form-control" name="nik" minlength="16" maxlength="16" required>
+                                                    <div class="invalid-feedback">NIK harus 16 digit angka.</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Tempat Lahir</label>
+                                                    <input type="text" class="form-control" name="birth_place">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Tanggal Lahir</label>
+                                                    <input type="date" class="form-control" name="birth_date" required>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Jenis Kelamin</label>
+                                                    <select class="form-select" name="gender" required>
+                                                        <option value="">Pilih...</option>
+                                                        <option value="L">Laki-laki</option>
+                                                        <option value="P">Perempuan</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Agama</label>
+                                                    <select class="form-select" name="religion">
+                                                        <option value="Islam">Islam</option>
+                                                        <option value="Kristen">Kristen</option>
+                                                        <option value="Katolik">Katolik</option>
+                                                        <option value="Hindu">Hindu</option>
+                                                        <option value="Buddha">Buddha</option>
+                                                        <option value="Konghucu">Konghucu</option>
+                                                        <option value="Lainnya">Lainnya</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Status Pernikahan</label>
+                                                    <select class="form-select" name="marital_status">
+                                                        <option value="Belum Menikah">Belum Menikah</option>
+                                                        <option value="Menikah">Menikah</option>
+                                                        <option value="Cerai">Cerai</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Golongan Darah</label>
+                                                    <select class="form-select" name="blood_type">
+                                                        <option value="-">-</option>
+                                                        <option value="A">A</option>
+                                                        <option value="B">B</option>
+                                                        <option value="AB">AB</option>
+                                                        <option value="O">O</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mb-3 text-uppercase bg-light p-2 mt-4"><i class="ti ti-map-pin me-1"></i> Kontak & Alamat</h5>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label required-star">No. Telepon / WhatsApp</label>
+                                                    <input type="text" class="form-control" name="phone" required>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Email Pribadi</label>
+                                                    <input type="email" class="form-control" name="email">
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Alamat Lengkap</label>
+                                                    <textarea class="form-control" name="address" rows="2"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Kota / Kabupaten</label>
+                                                    <input type="text" class="form-control" name="city">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Provinsi</label>
+                                                    <input type="text" class="form-control" name="province">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Kode Pos</label>
+                                                    <input type="text" class="form-control" name="postal_code">
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end mt-4">
+                                                <button type="button" class="btn btn-primary" onclick="nextStep(1, 2)">Berikutnya <i class="ti ti-arrow-right"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- STEP 2: KEPEGAWAIAN -->
+                                        <div class="tab-pane fade wizard-content" id="step2" role="tabpanel">
+                                            <h5 class="mb-3 text-uppercase bg-light p-2"><i class="ti ti-briefcase me-1"></i> Penempatan Kerja</h5>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Cabang</label>
+                                                    <select class="form-select" name="branch_id" id="branchSelect" required>
+                                                        <option value="">Pilih Cabang</option>
+                                                        <% branches.forEach(b => { %>
+                                                            <option value="<%= b._id %>"><%= b.name %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Departemen</label>
+                                                    <select class="form-select" name="department_id" id="deptSelect" required disabled>
+                                                        <option value="">Pilih Cabang Dulu</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Jabatan</label>
+                                                    <select class="form-select" name="position_id" id="posSelect" required disabled>
+                                                        <option value="">Pilih Departemen Dulu</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Status Karyawan</label>
+                                                    <select class="form-select" name="status" required>
+                                                        <option value="">Pilih...</option>
+                                                        <option value="KT">Karyawan Tetap (KT)</option>
+                                                        <option value="KL">Karyawan Kontrak (KL)</option>
+                                                        <option value="Magang">Magang</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Tanggal Bergabung</label>
+                                                    <input type="date" class="form-control" name="join_date" required>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Pendidikan Terakhir</label>
+                                                    <select class="form-select" name="last_education">
+                                                        <option value="">Pilih...</option>
+                                                        <option value="SMA/SMK">SMA/SMK</option>
+                                                        <option value="D3">D3</option>
+                                                        <option value="S1">S1</option>
+                                                        <option value="S2">S2</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mb-3 text-uppercase bg-light p-2 mt-4"><i class="ti ti-phone-call me-1"></i> Kontak Darurat</h5>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Nama Kontak</label>
+                                                    <input type="text" class="form-control" name="emergency_contact.name" required>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Hubungan</label>
+                                                    <input type="text" class="form-control" name="emergency_contact.relationship" placeholder="Istri / Suami / Orang Tua" required>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">No. Telepon</label>
+                                                    <input type="text" class="form-control" name="emergency_contact.phone" required>
+                                                </div>
+                                            </div>
+
+                                            <h5 class="mb-3 text-uppercase bg-light p-2 mt-4"><i class="ti ti-building-bank me-1"></i> Rekening Bank</h5>
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Nama Bank</label>
+                                                    <input type="text" class="form-control" name="bank_account.bank_name" placeholder="BCA, Mandiri, dll" required>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Nomor Rekening</label>
+                                                    <input type="text" class="form-control" name="bank_account.account_number" required>
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label required-star">Atas Nama</label>
+                                                    <input type="text" class="form-control" name="bank_account.account_holder_name" required>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between mt-4">
+                                                <button type="button" class="btn btn-light" onclick="prevStep(2, 1)"><i class="ti ti-arrow-left"></i> Kembali</button>
+                                                <button type="button" class="btn btn-primary" onclick="nextStep(2, 3)">Berikutnya <i class="ti ti-arrow-right"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- STEP 3: GAJI -->
+                                        <div class="tab-pane fade wizard-content" id="step3" role="tabpanel">
+                                            <h5 class="mb-3 text-uppercase bg-light p-2"><i class="ti ti-coin me-1"></i> Konfigurasi Gaji Awal</h5>
+                                            
+                                            <div class="alert alert-info">
+                                                Komponen gaji ini akan diperbarui ketika ada promosi atau penyesuaian tahunan.
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label required-star">Siklus Pembayaran</label>
+                                                    <select class="form-select" name="payment_cycle" required>
+                                                        <option value="monthly">Bulanan</option>
+                                                        <option value="weekly">Mingguan</option>
+                                                        <option value="daily">Harian</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label required-star">Gaji Pokok (Rp)</label>
+                                                    <input type="number" class="form-control" name="salary.base_salary" min="0" required>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Tunjangan Jabatan (Rp)</label>
+                                                    <input type="number" class="form-control" name="salary.position_allowance" value="0" min="0">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Tunjangan Kehadiran/Makan (Rp)</label>
+                                                    <input type="number" class="form-control" name="salary.meal_allowance" value="0" min="0">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Upah Lembur per Jam (Rp)</label>
+                                                    <input type="number" class="form-control" name="salary.overtime_rate_per_hour" value="0" min="0">
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between mt-4">
+                                                <button type="button" class="btn btn-light" onclick="prevStep(3, 2)"><i class="ti ti-arrow-left"></i> Kembali</button>
+                                                <button type="button" class="btn btn-primary" onclick="generatePreview()">Review & Submit <i class="ti ti-arrow-right"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- STEP 4: REVIEW -->
+                                        <div class="tab-pane fade wizard-content" id="step4" role="tabpanel">
+                                            <div class="text-center mb-4">
+                                                <i class="ti ti-check-badge text-success mb-2" style="font-size: 48px;"></i>
+                                                <h5>Verifikasi Data Karyawan</h5>
+                                                <p class="text-muted">Pastikan data di bawah ini sudah benar sebelum menyimpannya ke database.</p>
+                                            </div>
+
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <div class="row" id="previewContainer">
+                                                        <!-- Injected via JS -->
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between mt-4">
+                                                <button type="button" class="btn btn-light" onclick="prevStep(4, 3)"><i class="ti ti-arrow-left"></i> Kembali untuk Edit</button>
+                                                <button type="submit" class="btn btn-success" id="btnSubmit"><i class="ti ti-device-floppy"></i> Simpan Karyawan</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer-scripts') %>
+    <script src="/plugins/jquery/jquery.min.js"></script>
+    <script src="/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+    <script>
+        // Setup Form Validation functions
+        function validateStep(step) {
+            let isValid = true;
+            $(`#step${step} [required]`).each(function() {
+                if ($(this).val() === '') {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            return isValid;
+        }
+
+        function nextStep(current, next) {
+            if (validateStep(current)) {
+                $(`#step${current}`).removeClass('show active');
+                $(`#step${next}`).addClass('show active');
+                
+                // Update Nav Pills (visual only, disabled to prevent skipping)
+                $(`#step${current}-tab`).removeClass('active').removeAttr('disabled').addClass('text-success');
+                $(`#step${next}-tab`).addClass('active').removeAttr('disabled');
+            } else {
+                Swal.fire('Incomplete Form', 'Harap isi semua field yang wajib (*).', 'warning');
+            }
+        }
+
+        function prevStep(current, prev) {
+            $(`#step${current}`).removeClass('show active');
+            $(`#step${prev}`).addClass('show active');
+            
+            $(`#step${current}-tab`).removeClass('active');
+            $(`#step${prev}-tab`).addClass('active');
+        }
+
+        function generatePreview() {
+            if (!validateStep(3)) {
+                Swal.fire('Incomplete Form', 'Harap isi semua field gaji.', 'warning');
+                return;
+            }
+
+            // Extract data
+            const formData = new FormData(document.getElementById('formCreateEmployee'));
+            const dataObj = Object.fromEntries(formData.entries());
+
+            const branchText = $('#branchSelect option:selected').text();
+            
+            const htmlPreview = `
+                <div class="col-md-6">
+                    <p class="mb-1"><span class="text-muted">Nama Lengkap:</span> <strong>${dataObj.full_name}</strong></p>
+                    <p class="mb-1"><span class="text-muted">NIK:</span> ${dataObj.nik}</p>
+                    <p class="mb-1"><span class="text-muted">Telepon:</span> ${dataObj.phone}</p>
+                    <p class="mb-1"><span class="text-muted">Cabang:</span> ${branchText}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><span class="text-muted">Status:</span> <strong>${dataObj.status}</strong></p>
+                    <p class="mb-1"><span class="text-muted">Siklus Gaji:</span> ${dataObj.payment_cycle}</p>
+                    <p class="mb-1"><span class="text-muted">Gaji Pokok:</span> Rp ${Number(dataObj['salary.base_salary']).toLocaleString('id-ID')}</p>
+                    <p class="mt-2 text-info small"><i class="ti ti-info-circle"></i> Employee Code (ID) dan QR Code akan digenerate otomatis setelah form di-submit.</p>
+                </div>
+            `;
+            
+            $('#previewContainer').html(htmlPreview);
+            nextStep(3, 4);
+        }
+
+        // ==========================================
+        // Dynamic Selectors for Dept & Position
+        // ==========================================
+        $('#branchSelect').on('change', function() {
+            const branchId = $(this).val();
+            const deptSelect = $('#deptSelect');
+            const posSelect = $('#posSelect');
+
+            deptSelect.html('<option value="">Memuat...</option>').prop('disabled', true);
+            posSelect.html('<option value="">Pilih Departemen Dulu</option>').prop('disabled', true);
+
+            if(branchId) {
+                fetch(`/api/v1/departments?branch_id=${branchId}`)
+                    .then(res => res.json())
+                    .then(res => {
+                        let opts = '<option value="">Pilih Departemen</option>';
+                        res.data.forEach(d => {
+                            opts += `<option value="${d._id}">${d.name}</option>`;
+                        });
+                        deptSelect.html(opts).prop('disabled', false);
+                    });
+            }
+        });
+
+        $('#deptSelect').on('change', function() {
+            const deptId = $(this).val();
+            const posSelect = $('#posSelect');
+
+            posSelect.html('<option value="">Memuat...</option>').prop('disabled', true);
+
+            if(deptId) {
+                fetch(`/api/v1/positions?department_id=${deptId}`)
+                    .then(res => res.json())
+                    .then(res => {
+                        let opts = '<option value="">Pilih Jabatan</option>';
+                        res.data.forEach(p => {
+                            opts += `<option value="${p._id}">${p.name} (Lv. ${p.level})</option>`;
+                        });
+                        posSelect.html(opts).prop('disabled', false);
+                    });
+            }
+        });
+
+        // ==========================================
+        // Submitting Form Data via AJAX
+        // ==========================================
+        $('#formCreateEmployee').on('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = $('#btnSubmit');
+            btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm"></i> Menyimpan...');
+
+            // Convert raw form data to nested JSON structure matching Joi Validation
+            const fd = new FormData(this);
+            
+            const payload = {
+                branch_id: fd.get('branch_id'),
+                department_id: fd.get('department_id'),
+                position_id: fd.get('position_id'),
+                status: fd.get('status'),
+                payment_cycle: fd.get('payment_cycle'),
+                join_date: fd.get('join_date'),
+                
+                full_name: fd.get('full_name'),
+                nik: fd.get('nik'),
+                gender: fd.get('gender'),
+                birth_place: fd.get('birth_place'),
+                birth_date: fd.get('birth_date'),
+                religion: fd.get('religion'),
+                marital_status: fd.get('marital_status'),
+                blood_type: fd.get('blood_type'),
+                address: fd.get('address'),
+                city: fd.get('city'),
+                province: fd.get('province'),
+                postal_code: fd.get('postal_code'),
+                phone: fd.get('phone'),
+                email: fd.get('email'),
+                last_education: fd.get('last_education'),
+
+                emergency_contact: {
+                    name: fd.get('emergency_contact.name'),
+                    relationship: fd.get('emergency_contact.relationship'),
+                    phone: fd.get('emergency_contact.phone')
+                },
+
+                bank_account: {
+                    bank_name: fd.get('bank_account.bank_name'),
+                    account_number: fd.get('bank_account.account_number'),
+                    account_holder_name: fd.get('bank_account.account_holder_name')
+                },
+
+                salary: {
+                    base_salary: Number(fd.get('salary.base_salary')),
+                    position_allowance: Number(fd.get('salary.position_allowance')),
+                    meal_allowance: Number(fd.get('salary.meal_allowance')),
+                    overtime_rate_per_hour: Number(fd.get('salary.overtime_rate_per_hour'))
+                }
+            };
+
+            fetch('/api/v1/employees', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                btn.prop('disabled', false).html('<i class="ti ti-device-floppy"></i> Simpan Karyawan');
+                if(res.success) {
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: `Karyawan terdaftar dengan ID: ${res.data.employee_code}`,
+                        icon: 'success',
+                        confirmButtonText: 'Ke Daftar Karyawan'
+                    }).then(() => {
+                        window.location.href = '/karyawan';
+                    });
+                } else {
+                    let errStr = res.message;
+                    if(res.errors && res.errors.length > 0) {
+                        errStr += '<br><small class="text-danger">' + res.errors.map(e => e.message).join('<br>') + '</small>';
+                    }
+                    Swal.fire('Gagal Menyimpan', errStr, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.prop('disabled', false).html('<i class="ti ti-device-floppy"></i> Simpan Karyawan');
+                Swal.fire('Error', 'Terjadi kesalahan sistem internal', 'error');
+            });
+
+        });
+    </script>
+</body>
+</html>
